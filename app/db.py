@@ -19,7 +19,7 @@ def close_db(e=None):
 
 
 SCHEMA = """
-CREATE TABLE IF NOT EXISTS servers (
+CREATE TABLE IF NOT EXISTS plans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
@@ -28,20 +28,39 @@ CREATE TABLE IF NOT EXISTS servers (
     is_active INTEGER NOT NULL DEFAULT 1
 );
 
-CREATE TABLE IF NOT EXISTS orders (
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    server_id INTEGER,
-    server_name TEXT NOT NULL,
-    contact_name TEXT NOT NULL,
-    contact_info TEXT NOT NULL,
-    comment TEXT,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    plan_id INTEGER,
+    plan_name TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'awaiting_payment',
+    contact_note TEXT,
+    connection_info TEXT,
+    expires_at TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    status TEXT NOT NULL DEFAULT 'new',
-    FOREIGN KEY (server_id) REFERENCES servers (id) ON DELETE SET NULL
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (plan_id) REFERENCES plans (id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS action_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    subscription_id INTEGER NOT NULL,
+    action TEXT NOT NULL,
+    details TEXT,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (subscription_id) REFERENCES subscriptions (id) ON DELETE CASCADE
 );
 """
 
-SEED_SERVERS = [
+SEED_PLANS = [
     (
         "Старт",
         "Лёгкий сервер для небольшой группы игроков.",
@@ -67,11 +86,11 @@ def init_db():
     db = get_db()
     db.executescript(SCHEMA)
 
-    count = db.execute("SELECT COUNT(*) AS n FROM servers").fetchone()["n"]
+    count = db.execute("SELECT COUNT(*) AS n FROM plans").fetchone()["n"]
     if count == 0:
         db.executemany(
-            "INSERT INTO servers (name, description, specs, price) VALUES (?, ?, ?, ?)",
-            SEED_SERVERS,
+            "INSERT INTO plans (name, description, specs, price) VALUES (?, ?, ?, ?)",
+            SEED_PLANS,
         )
         db.commit()
 

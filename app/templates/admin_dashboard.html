@@ -1,44 +1,93 @@
 {% extends "base.html" %}
 
-{% block title %}Заявки{% endblock %}
+{% block title %}Админка{% endblock %}
 
 {% block nav %}{% endblock %}
 
 {% block content %}
 <section class="admin-header">
-  <h1>Заявки</h1>
+  <h1>Подписки</h1>
   <form method="post" action="{{ url_for('shop.admin_logout') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <button type="submit" class="btn btn-secondary">Выйти</button>
   </form>
 </section>
 
-{% if orders %}
+{% if subscriptions %}
+<div class="table-scroll">
 <table class="orders-table">
   <thead>
     <tr>
       <th>Дата</th>
+      <th>Клиент</th>
       <th>Тариф</th>
-      <th>Имя</th>
-      <th>Контакт</th>
       <th>Комментарий</th>
-      <th>Статус</th>
+      <th>Статус / доступы / срок</th>
     </tr>
   </thead>
   <tbody>
-    {% for o in orders %}
+    {% for s in subscriptions %}
     <tr>
-      <td>{{ o["created_at"] }}</td>
-      <td>{{ o["server_name"] }}</td>
-      <td>{{ o["contact_name"] }}</td>
-      <td>{{ o["contact_info"] }}</td>
-      <td>{{ o["comment"] or "" }}</td>
-      <td>{{ o["status"] }}</td>
+      <td>{{ s["created_at"] }}</td>
+      <td>{{ s["user_email"] }}</td>
+      <td>{{ s["plan_name"] }}</td>
+      <td>{{ s["contact_note"] or "" }}</td>
+      <td>
+        <form method="post" action="{{ url_for('shop.admin_update_subscription', subscription_id=s['id']) }}" class="admin-update-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <select name="status">
+            <option value="awaiting_payment" {% if s["status"] == "awaiting_payment" %}selected{% endif %}>Ожидает оплаты</option>
+            <option value="active" {% if s["status"] == "active" %}selected{% endif %}>Активен</option>
+            <option value="suspended" {% if s["status"] == "suspended" %}selected{% endif %}>Приостановлен</option>
+          </select>
+          <input type="text" name="connection_info" placeholder="IP, логин, пароль..." value="{{ s['connection_info'] or '' }}">
+          <input type="text" name="expires_at" placeholder="Активен до (YYYY-MM-DD)" value="{{ s['expires_at'] or '' }}">
+          <button type="submit" class="btn btn-small">Сохранить</button>
+        </form>
+      </td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
+</div>
 {% else %}
-<p>Заявок пока нет.</p>
+<p>Подписок пока нет.</p>
+{% endif %}
+
+<h2 class="admin-section-title">Заявки на действия</h2>
+{% if action_requests %}
+<div class="table-scroll">
+<table class="orders-table">
+  <thead>
+    <tr>
+      <th>Дата</th>
+      <th>Клиент</th>
+      <th>Тариф</th>
+      <th>Действие</th>
+      <th>Детали</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in action_requests %}
+    <tr>
+      <td>{{ a["created_at"] }}</td>
+      <td>{{ a["user_email"] }}</td>
+      <td>{{ a["plan_name"] }}</td>
+      <td>{{ a["action"] }}</td>
+      <td>{{ a["details"] or "" }}</td>
+      <td>
+        <form method="post" action="{{ url_for('shop.admin_complete_action', action_id=a['id']) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit" class="btn btn-small btn-secondary">Готово</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>Заявок на действия нет.</p>
 {% endif %}
 {% endblock %}

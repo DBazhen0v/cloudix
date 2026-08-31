@@ -19,7 +19,16 @@
         <a href="{{ url_for('shop.index') }}#how">Как это работает</a>
         <a href="{{ url_for('shop.index') }}#faq">Вопросы</a>
       </nav>
-      <a class="btn btn-small" href="{{ url_for('shop.index') }}#plans">Оставить заявку</a>
+      {% if user_logged_in %}
+        <a class="btn btn-small btn-secondary" href="{{ url_for('cabinet.index') }}">Личный кабинет</a>
+        <form method="post" action="{{ url_for('auth.logout') }}" class="nav-logout-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit" class="btn btn-small btn-secondary">Выйти</button>
+        </form>
+      {% else %}
+        <a class="btn btn-small btn-secondary" href="{{ url_for('auth.login') }}">Войти</a>
+        <a class="btn btn-small" href="{{ url_for('auth.register') }}">Регистрация</a>
+      {% endif %}
       {% endblock %}
     </div>
   </header>

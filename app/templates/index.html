@@ -37,20 +37,26 @@
 <section class="plans" id="plans">
   <h2 class="section-title">Тарифы</h2>
   <div class="plans-grid">
-    {% for server in servers %}
+    {% for plan in plans %}
     <article class="plan-card {% if loop.index == 2 %}plan-card-featured{% endif %}">
       {% if loop.index == 2 %}<span class="plan-badge">Популярный</span>{% endif %}
-      <h3>{{ server["name"] }}</h3>
-      <p class="plan-desc">{{ server["description"] }}</p>
-      <p class="plan-price">{{ server["price"] }}</p>
+      <h3>{{ plan["name"] }}</h3>
+      <p class="plan-desc">{{ plan["description"] }}</p>
+      <p class="plan-price">{{ plan["price"] }}</p>
       <ul class="plan-features">
-        {% for feature in server["specs"].split(",") %}
+        {% for feature in plan["specs"].split(",") %}
         <li>{{ feature.strip() }}</li>
         {% endfor %}
       </ul>
-      <button type="button" class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn" data-server-id="{{ server['id'] }}" data-server-name="{{ server['name'] }}">
+      {% if user_logged_in %}
+      <button type="button" class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn" data-plan-id="{{ plan['id'] }}" data-plan-name="{{ plan['name'] }}">
         Оставить заявку
       </button>
+      {% else %}
+      <a class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full" href="{{ url_for('auth.login', next=url_for('shop.index') + '#plans') }}">
+        Войти, чтобы заказать
+      </a>
+      {% endif %}
     </article>
     {% endfor %}
   </div>
@@ -77,18 +83,12 @@
 <dialog id="order-dialog">
   <form method="post" action="{{ url_for('shop.order') }}" id="order-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <input type="hidden" name="server_id" id="order-server-id">
+    <input type="hidden" name="plan_id" id="order-plan-id">
 
-    <h3>Заявка на тариф «<span id="order-server-name"></span>»</h3>
-
-    <label for="contact_name">Имя</label>
-    <input type="text" id="contact_name" name="contact_name" required maxlength="120">
-
-    <label for="contact_info">Telegram / email / телефон</label>
-    <input type="text" id="contact_info" name="contact_info" required maxlength="200">
+    <h3>Заявка на тариф «<span id="order-plan-name"></span>»</h3>
 
     <label for="comment">Комментарий (необязательно)</label>
-    <textarea id="comment" name="comment" maxlength="1000" rows="3"></textarea>
+    <textarea id="comment" name="comment" maxlength="1000" rows="3" placeholder="Например: какая игра, сколько игроков"></textarea>
 
     <div class="dialog-actions">
       <button type="button" class="btn btn-secondary" onclick="document.getElementById('order-dialog').close()">Отмена</button>
@@ -100,8 +100,8 @@
 <script>
   document.querySelectorAll('.order-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
-      document.getElementById('order-server-id').value = btn.dataset.serverId;
-      document.getElementById('order-server-name').textContent = btn.dataset.serverName;
+      document.getElementById('order-plan-id').value = btn.dataset.planId;
+      document.getElementById('order-plan-name').textContent = btn.dataset.planName;
       document.getElementById('order-dialog').showModal();
     });
   });

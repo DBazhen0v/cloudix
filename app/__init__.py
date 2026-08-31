@@ -19,4 +19,10 @@ def create_app():
     from . import routes
     app.register_blueprint(routes.bp)
 
+    from . import auth
+    app.register_blueprint(auth.bp)
+
+    from . import cabinet
+    app.register_blueprint(cabinet.bp)
+
     return app

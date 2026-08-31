@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+<section class="auth-form">
+  <h1>Вход</h1>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="next" value="{{ next_url }}">
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required autofocus>
+
+    <label for="password">Пароль</label>
+    <input type="password" id="password" name="password" required>
+
+    <button type="submit" class="btn btn-full">Войти</button>
+  </form>
+  <p class="auth-switch">Нет аккаунта? <a href="{{ url_for('auth.register', next=next_url) }}">Зарегистрироваться</a></p>
+</section>
+{% endblock %}
