@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Вход в админку{% endblock %}
+
+{% block nav %}{% endblock %}
+
+{% block content %}
+<section class="auth-form">
+  <h1>Вход</h1>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="password">Пароль</label>
+    <input type="password" id="password" name="password" required autofocus>
+    <button type="submit" class="btn">Войти</button>
+  </form>
+</section>
+{% endblock %}

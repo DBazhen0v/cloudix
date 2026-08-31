@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Серверы — игровые серверы под ключ{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <span class="eyebrow">Настройка и запуск за 1 день</span>
+  <h1>Игровой сервер под ключ,<br>без головной боли</h1>
+  <p>Выбираете тариф — мы вручную настраиваем и передаём вам готовый сервер с доступом администратора.</p>
+  <div class="hero-actions">
+    <a href="#plans" class="btn btn-large">Смотреть тарифы</a>
+    <a href="#how" class="btn btn-secondary btn-large">Как это работает</a>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <h2 class="section-title">Как это работает</h2>
+  <div class="steps">
+    <div class="step">
+      <span class="step-num">1</span>
+      <h3>Выбираете тариф</h3>
+      <p>Смотрите мощность и цену, подбираете под свою игру и число игроков.</p>
+    </div>
+    <div class="step">
+      <span class="step-num">2</span>
+      <h3>Оставляете заявку</h3>
+      <p>Пишете, как с вами связаться — в Telegram, по email или телефону.</p>
+    </div>
+    <div class="step">
+      <span class="step-num">3</span>
+      <h3>Получаете сервер</h3>
+      <p>Мы настраиваем сервер вручную и присылаем доступы в тот же день.</p>
+    </div>
+  </div>
+</section>
+
+<section class="plans" id="plans">
+  <h2 class="section-title">Тарифы</h2>
+  <div class="plans-grid">
+    {% for server in servers %}
+    <article class="plan-card {% if loop.index == 2 %}plan-card-featured{% endif %}">
+      {% if loop.index == 2 %}<span class="plan-badge">Популярный</span>{% endif %}
+      <h3>{{ server["name"] }}</h3>
+      <p class="plan-desc">{{ server["description"] }}</p>
+      <p class="plan-price">{{ server["price"] }}</p>
+      <ul class="plan-features">
+        {% for feature in server["specs"].split(",") %}
+        <li>{{ feature.strip() }}</li>
+        {% endfor %}
+      </ul>
+      <button type="button" class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn" data-server-id="{{ server['id'] }}" data-server-name="{{ server['name'] }}">
+        Оставить заявку
+      </button>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="faq" id="faq">
+  <h2 class="section-title">Вопросы и ответы</h2>
+  <div class="faq-list">
+    <details>
+      <summary>Какие игры поддерживаются?</summary>
+      <p>Настраиваем сервера под большинство популярных игр — уточните вашу игру в заявке, и мы подтвердим детали.</p>
+    </details>
+    <details>
+      <summary>Как быстро сервер будет готов?</summary>
+      <p>Обычно в течение одного дня после заявки — мы свяжемся с вами, чтобы уточнить детали настройки.</p>
+    </details>
+    <details>
+      <summary>Можно ли поменять тариф позже?</summary>
+      <p>Да, напишите нам, и мы поможем перенести сервер на другой тариф без потери данных.</p>
+    </details>
+  </div>
+</section>
+
+<dialog id="order-dialog">
+  <form method="post" action="{{ url_for('shop.order') }}" id="order-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="server_id" id="order-server-id">
+
+    <h3>Заявка на тариф «<span id="order-server-name"></span>»</h3>
+
+    <label for="contact_name">Имя</label>
+    <input type="text" id="contact_name" name="contact_name" required maxlength="120">
+
+    <label for="contact_info">Telegram / email / телефон</label>
+    <input type="text" id="contact_info" name="contact_info" required maxlength="200">
+
+    <label for="comment">Комментарий (необязательно)</label>
+    <textarea id="comment" name="comment" maxlength="1000" rows="3"></textarea>
+
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-secondary" onclick="document.getElementById('order-dialog').close()">Отмена</button>
+      <button type="submit" class="btn">Отправить</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  document.querySelectorAll('.order-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.getElementById('order-server-id').value = btn.dataset.serverId;
+      document.getElementById('order-server-name').textContent = btn.dataset.serverName;
+      document.getElementById('order-dialog').showModal();
+    });
+  });
+</script>
+{% endblock %}

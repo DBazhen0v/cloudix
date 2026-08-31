@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Серверы{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="{{ url_for('shop.index') }}">
+        <span class="logo-mark"></span>
+        Серверы
+      </a>
+      {% block nav %}
+      <nav class="site-nav">
+        <a href="{{ url_for('shop.index') }}#plans">Тарифы</a>
+        <a href="{{ url_for('shop.index') }}#how">Как это работает</a>
+        <a href="{{ url_for('shop.index') }}#faq">Вопросы</a>
+      </nav>
+      <a class="btn btn-small" href="{{ url_for('shop.index') }}#plans">Оставить заявку</a>
+      {% endblock %}
+    </div>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-list">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div>
+        <span class="logo-mark"></span>
+        <strong>Серверы</strong>
+      </div>
+      <p>Пишите нам: <a href="#">@your_telegram</a> · <a href="#">hello@example.com</a></p>
+      <span class="footer-copy">&copy; 2026 Серверы</span>
+    </div>
+  </footer>
+</body>
+</html>

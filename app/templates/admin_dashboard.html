@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Заявки{% endblock %}
+
+{% block nav %}{% endblock %}
+
+{% block content %}
+<section class="admin-header">
+  <h1>Заявки</h1>
+  <form method="post" action="{{ url_for('shop.admin_logout') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button type="submit" class="btn btn-secondary">Выйти</button>
+  </form>
+</section>
+
+{% if orders %}
+<table class="orders-table">
+  <thead>
+    <tr>
+      <th>Дата</th>
+      <th>Тариф</th>
+      <th>Имя</th>
+      <th>Контакт</th>
+      <th>Комментарий</th>
+      <th>Статус</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for o in orders %}
+    <tr>
+      <td>{{ o["created_at"] }}</td>
+      <td>{{ o["server_name"] }}</td>
+      <td>{{ o["contact_name"] }}</td>
+      <td>{{ o["contact_info"] }}</td>
+      <td>{{ o["comment"] or "" }}</td>
+      <td>{{ o["status"] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Заявок пока нет.</p>
+{% endif %}
+{% endblock %}
