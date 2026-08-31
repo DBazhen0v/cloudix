@@ -1,15 +1,10 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, session, url_for
 
+from .constants import ACTIONS, PAYMENT_METHODS
 from .db import get_db
 from .security import check_csrf_token, login_required
 
 bp = Blueprint("cabinet", __name__, url_prefix="/cabinet")
-
-ACTIONS = {
-    "reboot": "Перезагрузка",
-    "renew": "Продление",
-    "change_plan": "Смена тарифа",
-}
 
 
 @bp.route("")
@@ -28,7 +23,12 @@ def index():
         (session["user_id"],),
     ).fetchall()
     plans = db.execute("SELECT * FROM plans WHERE is_active = 1 ORDER BY id").fetchall()
-    return render_template("cabinet.html", subscriptions=subscriptions, plans=plans)
+    return render_template(
+        "cabinet.html",
+        subscriptions=subscriptions,
+        plans=plans,
+        payment_methods=PAYMENT_METHODS,
+    )
 
 
 @bp.route("/action", methods=["POST"])

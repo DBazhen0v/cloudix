@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     plan_id INTEGER,
     plan_name TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'awaiting_payment',
+    payment_method TEXT,
     contact_note TEXT,
     connection_info TEXT,
     expires_at TEXT,

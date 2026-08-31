@@ -21,6 +21,7 @@
       <th>Дата</th>
       <th>Клиент</th>
       <th>Тариф</th>
+      <th>Оплата</th>
       <th>Комментарий</th>
       <th>Статус / доступы / срок</th>
     </tr>
@@ -31,6 +32,7 @@
       <td>{{ s["created_at"] }}</td>
       <td>{{ s["user_email"] }}</td>
       <td>{{ s["plan_name"] }}</td>
+      <td>{{ payment_methods.get(s["payment_method"], "—") }}</td>
       <td>{{ s["contact_note"] or "" }}</td>
       <td>
         <form method="post" action="{{ url_for('shop.admin_update_subscription', subscription_id=s['id']) }}" class="admin-update-form">

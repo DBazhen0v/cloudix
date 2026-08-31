@@ -21,6 +21,7 @@
       </div>
 
       <p class="cabinet-meta">Создана: {{ s["created_at"] }}</p>
+      {% if s["payment_method"] %}<p class="cabinet-meta">Способ оплаты: {{ payment_methods.get(s["payment_method"], s["payment_method"]) }}</p>{% endif %}
       {% if s["expires_at"] %}<p class="cabinet-meta">Активна до: {{ s["expires_at"] }}</p>{% endif %}
       {% if s["connection_info"] %}
       <p class="cabinet-connection">{{ s["connection_info"] }}</p>

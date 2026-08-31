@@ -10,6 +10,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash
 
+from .constants import PAYMENT_METHODS
 from .db import get_db
 from .security import admin_login_required, check_csrf_token, get_csrf_token
 
@@ -38,6 +39,10 @@ def order():
 
     plan_id = request.form.get("plan_id", type=int)
     contact_note = request.form.get("comment", "").strip()
+    payment_method = request.form.get("payment_method", "")
+
+    if payment_method not in PAYMENT_METHODS:
+        payment_method = None
 
     db = get_db()
     plan = db.execute(
@@ -49,10 +54,10 @@ def order():
 
     db.execute(
         """
-        INSERT INTO subscriptions (user_id, plan_id, plan_name, contact_note)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO subscriptions (user_id, plan_id, plan_name, contact_note, payment_method)
+        VALUES (?, ?, ?, ?, ?)
         """,
-        (session["user_id"], plan["id"], plan["name"], contact_note or None),
+        (session["user_id"], plan["id"], plan["name"], contact_note or None, payment_method),
     )
     db.commit()
 
@@ -104,7 +109,10 @@ def admin_dashboard():
         """
     ).fetchall()
     return render_template(
-        "admin_dashboard.html", subscriptions=subscriptions, action_requests=action_requests
+        "admin_dashboard.html",
+        subscriptions=subscriptions,
+        action_requests=action_requests,
+        payment_methods=PAYMENT_METHODS,
     )
 
 

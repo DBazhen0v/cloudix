@@ -90,6 +90,37 @@
     <label for="comment">Комментарий (необязательно)</label>
     <textarea id="comment" name="comment" maxlength="1000" rows="3" placeholder="Например: какая игра, сколько игроков"></textarea>
 
+    <label class="payment-label">Способ оплаты</label>
+    <div class="payment-methods">
+      <label class="payment-option">
+        <input type="radio" name="payment_method" value="card" checked>
+        <span>Карта</span>
+      </label>
+      <label class="payment-option">
+        <input type="radio" name="payment_method" value="crypto">
+        <span>Криптовалюта</span>
+      </label>
+      <label class="payment-option">
+        <input type="radio" name="payment_method" value="sbp">
+        <span>СБП / перевод</span>
+      </label>
+    </div>
+
+    <div class="payment-panel" data-panel="card">
+      <input type="text" placeholder="Номер карты" maxlength="19" inputmode="numeric">
+      <div class="payment-panel-row">
+        <input type="text" placeholder="ММ/ГГ" maxlength="5">
+        <input type="text" placeholder="CVV" maxlength="3">
+      </div>
+      <p class="payment-note">Демо: приём карт ещё не подключён, поля никуда не отправляются. Заявку подтвердит администратор вручную.</p>
+    </div>
+    <div class="payment-panel" data-panel="crypto" hidden>
+      <p class="payment-note">Адрес кошелька пришлём вместе с подтверждением заявки — оплата криптовалютой пока обрабатывается вручную.</p>
+    </div>
+    <div class="payment-panel" data-panel="sbp" hidden>
+      <p class="payment-note">Реквизиты для перевода пришлёт администратор после заявки.</p>
+    </div>
+
     <div class="dialog-actions">
       <button type="button" class="btn btn-secondary" onclick="document.getElementById('order-dialog').close()">Отмена</button>
       <button type="submit" class="btn">Отправить</button>
@@ -98,6 +129,14 @@
 </dialog>
 
 <script>
+  document.querySelectorAll('input[name="payment_method"]').forEach(function (radio) {
+    radio.addEventListener('change', function () {
+      document.querySelectorAll('.payment-panel').forEach(function (panel) {
+        panel.hidden = panel.dataset.panel !== radio.value;
+      });
+    });
+  });
+
   document.querySelectorAll('.order-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
       document.getElementById('order-plan-id').value = btn.dataset.planId;
