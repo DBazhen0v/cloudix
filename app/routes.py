@@ -18,8 +18,13 @@ bp = Blueprint("shop", __name__)
 
 
 @bp.app_context_processor
-def inject_csrf_token():
-    return {"csrf_token": get_csrf_token(), "user_logged_in": bool(session.get("user_id"))}
+def inject_globals():
+    return {
+        "csrf_token": get_csrf_token(),
+        "user_logged_in": bool(session.get("user_id")),
+        "support_telegram_url": current_app.config["SUPPORT_TELEGRAM_URL"],
+        "support_email": current_app.config["SUPPORT_EMAIL"],
+    }
 
 
 @bp.route("/")
@@ -47,8 +52,13 @@ def order():
         return redirect(url_for("auth.login", next=url_for("shop.index") + "#plans"))
 
     plan_id = request.form.get("plan_id", type=int)
-    contact_note = request.form.get("comment", "").strip()
+    contact = request.form.get("contact", "").strip()
+    comment = request.form.get("comment", "").strip()
     payment_method = request.form.get("payment_method", "")
+
+    contact_note = "\n".join(
+        part for part in (f"Контакт: {contact}" if contact else "", comment) if part
+    )
 
     if payment_method not in PAYMENT_METHODS:
         payment_method = None
@@ -70,7 +80,11 @@ def order():
     )
     db.commit()
 
-    flash("Заявка отправлена! Мы свяжемся с вами для оплаты и настройки.", "success")
+    flash(
+        "Заявка отправлена. Мы получили вашу заявку — администратор свяжется с вами "
+        "для подтверждения оплаты и настройки.",
+        "success",
+    )
     return redirect(url_for("cabinet.index"))
 
 

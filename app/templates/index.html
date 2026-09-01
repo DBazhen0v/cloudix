@@ -1,47 +1,119 @@
 {% extends "base.html" %}
+{% from "_icons.html" import icon_bolt, icon_shield, icon_wrench, icon_headset, icon_disk, icon_bot, icon_globe, icon_api, icon_layers, icon_cube, icon_automation, icon_terminal, icon_flask, icon_check_circle, icon_card, icon_crypto, icon_transfer, icon_arrow_right, icon_close %}
 
-{% block title %}Серверы — аренда серверов под ключ{% endblock %}
+{% block title %}Cloudix — серверы под ключ{% endblock %}
 
 {% block content %}
 <section class="hero">
-  <span class="eyebrow">Настройка и запуск за 1 день</span>
-  <h1>Сервер под ключ<br>для любых задач</h1>
-  <p>Боты и скрипты, сайты, игровые сервера — выбираете направление, мы вручную настраиваем и передаём вам готовый сервер с доступом администратора.</p>
-  <div class="hero-actions">
-    <a href="#plans" class="btn btn-large">Смотреть тарифы</a>
-    <a href="#how" class="btn btn-secondary btn-large">Как это работает</a>
+  <div class="hero-inner">
+    <div class="hero-text">
+      <span class="eyebrow">SERVER INFRASTRUCTURE • READY IN 1 DAY</span>
+      <h1>Сервер под ключ<br>для любых задач</h1>
+      <p>Серверы для ботов, сайтов, приложений и игровых проектов. Настроим окружение, передадим доступ администратора и поможем запустить проект.</p>
+      <div class="hero-actions">
+        <a href="#plans" class="btn btn-large">Выбрать сервер</a>
+        <a href="#how" class="btn btn-secondary btn-large">Как это работает</a>
+      </div>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+      <div class="hero-rack">
+        <div class="hero-rack-row">
+          <span class="hero-led hero-led-on"></span>
+          <span class="hero-rack-label">srv-01 · online</span>
+          <span class="hero-rack-bar"><span style="width:72%"></span></span>
+        </div>
+        <div class="hero-rack-row">
+          <span class="hero-led hero-led-on"></span>
+          <span class="hero-rack-label">srv-02 · online</span>
+          <span class="hero-rack-bar"><span style="width:45%"></span></span>
+        </div>
+        <div class="hero-rack-row">
+          <span class="hero-led hero-led-idle"></span>
+          <span class="hero-rack-label">srv-03 · deploying</span>
+          <span class="hero-rack-bar"><span style="width:28%"></span></span>
+        </div>
+        <div class="hero-rack-row">
+          <span class="hero-led hero-led-on"></span>
+          <span class="hero-rack-label">srv-04 · online</span>
+          <span class="hero-rack-bar"><span style="width:88%"></span></span>
+        </div>
+      </div>
+      <div class="hero-orbit">
+        <span class="hero-node hero-node-1"></span>
+        <span class="hero-node hero-node-2"></span>
+        <span class="hero-node hero-node-3"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="trust-strip">
+  <h2 class="section-eyebrow">Всё необходимое для запуска</h2>
+  <div class="trust-grid">
+    <div class="trust-item">{{ icon_bolt() }}<span>Быстрый запуск</span></div>
+    <div class="trust-item">{{ icon_shield() }}<span>Root/Admin доступ</span></div>
+    <div class="trust-item">{{ icon_wrench() }}<span>Ручная настройка</span></div>
+    <div class="trust-item">{{ icon_headset() }}<span>Поддержка</span></div>
+    <div class="trust-item">{{ icon_disk() }}<span>NVMe storage</span></div>
+  </div>
+</section>
+
+<section class="use-cases" id="use-cases">
+  <h2 class="section-title">Для чего подходит</h2>
+  <div class="use-cases-grid">
+    <div class="use-case-card">{{ icon_bot() }}<span>Telegram / Discord боты</span></div>
+    <div class="use-case-card">{{ icon_globe() }}<span>Web-сайты</span></div>
+    <div class="use-case-card">{{ icon_api() }}<span>API и backend</span></div>
+    <div class="use-case-card">{{ icon_layers() }}<span>Python / Node.js приложения</span></div>
+    <div class="use-case-card">{{ icon_cube() }}<span>Minecraft</span></div>
+    <div class="use-case-card">{{ icon_automation() }}<span>Автоматизация</span></div>
+    <div class="use-case-card">{{ icon_terminal() }}<span>Скрипты</span></div>
+    <div class="use-case-card">{{ icon_flask() }}<span>Тестовые окружения</span></div>
   </div>
 </section>
 
 <section class="how" id="how">
   <h2 class="section-title">Как это работает</h2>
-  <div class="steps">
-    <div class="step">
-      <span class="step-num">1</span>
+  <ol class="timeline">
+    <li class="timeline-step">
+      <span class="timeline-num">01</span>
       <h3>Выбираете тариф</h3>
-      <p>Смотрите мощность и цену, подбираете под свою задачу — бота, сайт или игровой сервер.</p>
-    </div>
-    <div class="step">
-      <span class="step-num">2</span>
+      <p>Подбираете конфигурацию под задачу — бота, сайт или игровой сервер.</p>
+    </li>
+    <li class="timeline-step">
+      <span class="timeline-num">02</span>
       <h3>Оставляете заявку</h3>
-      <p>Пишете, как с вами связаться — в Telegram, по email или телефону.</p>
-    </div>
-    <div class="step">
-      <span class="step-num">3</span>
-      <h3>Получаете сервер</h3>
-      <p>Мы настраиваем сервер вручную и присылаем доступы в тот же день.</p>
-    </div>
-  </div>
+      <p>Указываете удобный способ связи и что нужно настроить.</p>
+    </li>
+    <li class="timeline-step">
+      <span class="timeline-num">03</span>
+      <h3>Мы настраиваем сервер</h3>
+      <p>Подготавливаем окружение и проверяем, что всё работает.</p>
+    </li>
+    <li class="timeline-step">
+      <span class="timeline-num">04</span>
+      <h3>Получаете доступ</h3>
+      <p>Получаете готовый сервер и доступ администратора в тот же день.</p>
+    </li>
+  </ol>
 </section>
 
 <section class="plans" id="plans">
   <h2 class="section-title">Тарифы</h2>
   {% for category, category_plans in plan_groups.items() %}
-  <h3 class="plans-category-title">{{ category }}</h3>
+  <h3 class="plans-category-title">
+    {% if category == 'Серверы для ботов и скриптов' %}{{ icon_bot(20) }}
+    {% elif category == 'Веб-хостинг' %}{{ icon_globe(20) }}
+    {% elif category == 'Minecraft-сервера' %}{{ icon_cube(20) }}
+    {% endif %}
+    {{ category }}
+  </h3>
   <div class="plans-grid">
     {% for plan in category_plans %}
-    <article class="plan-card">
-      <h3>{{ plan["name"] }}</h3>
+    <article class="plan-card {% if loop.index == 2 %}plan-card-featured{% endif %}">
+      {% if loop.index == 2 %}<span class="plan-badge">Популярный выбор</span>{% endif %}
+      <h4>{{ plan["name"] }}</h4>
       <p class="plan-desc">{{ plan["description"] }}</p>
       <p class="plan-price">{{ plan["price"] }}</p>
       <ul class="plan-features">
@@ -49,15 +121,17 @@
         <li>{{ feature.strip() }}</li>
         {% endfor %}
       </ul>
-      {% if user_logged_in %}
-      <button type="button" class="btn btn-full order-btn" data-plan-id="{{ plan['id'] }}" data-plan-name="{{ plan['name'] }}">
-        Оставить заявку
+      <button
+        type="button"
+        class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn"
+        data-plan-id="{{ plan['id'] }}"
+        data-plan-name="{{ plan['name'] }}"
+        data-plan-category="{{ plan['category'] }}"
+        data-plan-specs="{{ plan['specs'] }}"
+        data-plan-price="{{ plan['price'] }}"
+      >
+        Выбрать тариф
       </button>
-      {% else %}
-      <a class="btn btn-full" href="{{ url_for('auth.login', next=url_for('shop.index') + '#plans') }}">
-        Войти, чтобы заказать
-      </a>
-      {% endif %}
     </article>
     {% endfor %}
   </div>
@@ -67,109 +141,180 @@
 <section class="faq" id="faq">
   <h2 class="section-title">Вопросы и ответы</h2>
   <div class="faq-list">
-    <details>
-      <summary>Что именно вы настраиваете?</summary>
-      <p>Сервера под ботов и скрипты, веб-хостинг для сайтов и приложений, игровые сервера (Minecraft) — уточните детали задачи в заявке, и мы подтвердим настройку.</p>
-    </details>
-    <details>
-      <summary>Как быстро сервер будет готов?</summary>
-      <p>Обычно в течение одного дня после заявки — мы свяжемся с вами, чтобы уточнить детали настройки.</p>
-    </details>
-    <details>
-      <summary>Можно ли поменять тариф позже?</summary>
-      <p>Да, напишите нам, и мы поможем перенести сервер на другой тариф без потери данных.</p>
-    </details>
-    <details>
-      <summary>Можно ли вернуть деньги?</summary>
-      <p>Нет, возврат средств не производится. Перед оплатой уточните все детали тарифа в заявке или через поддержку.</p>
-    </details>
+    <div class="faq-item">
+      <h3><button type="button" class="faq-question" aria-expanded="false">
+        <span>Что именно вы настраиваете?</span>
+      </button></h3>
+      <div class="faq-answer" hidden>
+        <p>Сервера под ботов и скрипты, веб-хостинг для сайтов и приложений, игровые сервера (Minecraft) — уточните детали задачи в заявке, и мы подтвердим настройку.</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <h3><button type="button" class="faq-question" aria-expanded="false">
+        <span>Как быстро сервер будет готов?</span>
+      </button></h3>
+      <div class="faq-answer" hidden>
+        <p>Обычно в течение одного дня после заявки — мы свяжемся с вами, чтобы уточнить детали настройки.</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <h3><button type="button" class="faq-question" aria-expanded="false">
+        <span>Можно ли поменять тариф позже?</span>
+      </button></h3>
+      <div class="faq-answer" hidden>
+        <p>Да, из личного кабинета можно отправить заявку на смену тарифа — администратор перенесёт сервер без потери данных.</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <h3><button type="button" class="faq-question" aria-expanded="false">
+        <span>Можно ли вернуть деньги?</span>
+      </button></h3>
+      <div class="faq-answer" hidden>
+        <p>Нет, возврат средств не производится. Перед оплатой уточните все детали тарифа в заявке или через поддержку.</p>
+      </div>
+    </div>
   </div>
 </section>
 
-<dialog id="order-dialog">
-  <form method="post" action="{{ url_for('shop.order') }}" id="order-form">
+<dialog id="order-dialog" aria-labelledby="order-dialog-title">
+  <button type="button" class="dialog-close" id="order-dialog-close" aria-label="Закрыть">{{ icon_close(18) }}</button>
+
+  {% if user_logged_in %}
+  <form method="post" action="{{ url_for('shop.order') }}" id="order-form" novalidate>
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <input type="hidden" name="plan_id" id="order-plan-id">
 
-    <h3>Заявка на тариф «<span id="order-plan-name"></span>»</h3>
+    <h3 id="order-dialog-title">Заявка на сервер</h3>
 
-    <label for="comment">Комментарий (необязательно)</label>
-    <textarea id="comment" name="comment" maxlength="1000" rows="3" placeholder="Например: для чего сервер, какие требования"></textarea>
-
-    <label class="payment-label">Способ оплаты</label>
-    <div class="payment-methods">
-      <label class="payment-option">
-        <input type="radio" name="payment_method" value="card" checked>
-        <span>Карта</span>
-      </label>
-      <label class="payment-option">
-        <input type="radio" name="payment_method" value="crypto">
-        <span>Криптовалюта</span>
-      </label>
-      <label class="payment-option">
-        <input type="radio" name="payment_method" value="sbp">
-        <span>СБП / перевод</span>
-      </label>
-    </div>
-
-    <div class="payment-panel" data-panel="card">
-      <input type="text" placeholder="Номер карты" maxlength="19" inputmode="numeric">
-      <div class="payment-panel-row">
-        <input type="text" placeholder="ММ/ГГ" maxlength="5">
-        <input type="text" placeholder="CVV" maxlength="3">
+    <div class="order-summary">
+      <div class="order-summary-row">
+        <span class="order-summary-category" id="order-plan-category"></span>
+        <span class="order-summary-name" id="order-plan-name"></span>
       </div>
-      <p class="payment-note">Демо: приём карт ещё не подключён, поля никуда не отправляются. Заявку подтвердит администратор вручную.</p>
-    </div>
-    <div class="payment-panel" data-panel="crypto" hidden>
-      {% if crypto_wallet_address %}
-      <label class="payment-label">Адрес для перевода</label>
-      <div class="wallet-address">
-        <code>{{ crypto_wallet_address }}</code>
-        <button type="button" class="btn btn-small btn-secondary wallet-copy-btn" data-address="{{ crypto_wallet_address }}">Скопировать</button>
-      </div>
-      <p class="payment-note">Отправьте точную сумму тарифа на этот адрес и укажите email в комментарии к заявке — так мы быстрее подтвердим оплату.</p>
-      {% else %}
-      <p class="payment-note">Адрес кошелька ещё не подключён — администратор пришлёт его вручную после заявки.</p>
-      {% endif %}
-    </div>
-    <div class="payment-panel" data-panel="sbp" hidden>
-      <p class="payment-note">Реквизиты для перевода пришлёт администратор после заявки.</p>
+      <div class="order-summary-specs" id="order-plan-specs"></div>
+      <div class="order-summary-price" id="order-plan-price"></div>
     </div>
 
-    <p class="payment-note payment-refund-note">Возврат средств не производится — уточняйте все детали до оплаты.</p>
+    <label for="contact">Как с вами связаться (необязательно)</label>
+    <input type="text" id="contact" name="contact" maxlength="200" placeholder="Telegram, телефон или другой контакт">
+
+    <label for="comment">Комментарий</label>
+    <textarea id="comment" name="comment" maxlength="1000" rows="3" placeholder="Расскажите, для чего нужен сервер..."></textarea>
+
+    <fieldset class="payment-fieldset">
+      <legend class="payment-label">Способ оплаты</legend>
+      <div class="payment-methods">
+        <label class="payment-option">
+          <input type="radio" name="payment_method" value="card" checked>
+          {{ icon_card(18) }}<span>Карта</span>
+        </label>
+        <label class="payment-option">
+          <input type="radio" name="payment_method" value="crypto">
+          {{ icon_crypto(18) }}<span>Криптовалюта</span>
+        </label>
+        <label class="payment-option">
+          <input type="radio" name="payment_method" value="sbp">
+          {{ icon_transfer(18) }}<span>СБП / перевод</span>
+        </label>
+      </div>
+
+      <div class="payment-panel" data-panel="card">
+        <p class="payment-note">Оплата картой будет подтверждена администратором вручную — сейчас приём карт на сайте не подключён, никакие данные карты вводить не нужно.</p>
+      </div>
+      <div class="payment-panel" data-panel="crypto" hidden>
+        {% if crypto_wallet_address %}
+        <label class="payment-label" for="wallet-address-text">Адрес для перевода</label>
+        <div class="wallet-address">
+          <code id="wallet-address-text">{{ crypto_wallet_address }}</code>
+          <button type="button" class="btn btn-small btn-secondary wallet-copy-btn" data-address="{{ crypto_wallet_address }}">Скопировать</button>
+        </div>
+        <p class="payment-note">Отправьте точную сумму тарифа на этот адрес и укажите контакт выше — так мы быстрее подтвердим оплату.</p>
+        {% else %}
+        <p class="payment-note">Адрес кошелька пока не подключён — администратор пришлёт его вручную после заявки.</p>
+        {% endif %}
+      </div>
+      <div class="payment-panel" data-panel="sbp" hidden>
+        <p class="payment-note">Реквизиты для перевода пришлёт администратор после заявки.</p>
+      </div>
+    </fieldset>
+
+    <p class="payment-note payment-refund-note">Оплата будет подтверждена администратором вручную. Возврат средств не производится — уточняйте все детали до оплаты.</p>
 
     <div class="dialog-actions">
-      <button type="button" class="btn btn-secondary" onclick="document.getElementById('order-dialog').close()">Отмена</button>
-      <button type="submit" class="btn">Отправить</button>
+      <button type="button" class="btn btn-secondary" id="order-dialog-cancel">Отмена</button>
+      <button type="submit" class="btn">Отправить заявку</button>
     </div>
   </form>
+  {% else %}
+  <div class="order-auth-required">
+    <h3 id="order-dialog-title">Нужен вход в аккаунт</h3>
+    <p>Чтобы оформить сервер, войдите или зарегистрируйтесь — это займёт меньше минуты, а в личном кабинете вы увидите статус своей заявки.</p>
+    <div class="order-auth-plan" id="order-auth-plan-name"></div>
+    <div class="dialog-actions dialog-actions-stack">
+      <a class="btn btn-full" id="order-auth-register" href="{{ url_for('auth.register') }}">Зарегистрироваться{{ icon_arrow_right(16) }}</a>
+      <a class="btn btn-secondary btn-full" id="order-auth-login" href="{{ url_for('auth.login') }}">У меня уже есть аккаунт</a>
+    </div>
+  </div>
+  {% endif %}
 </dialog>
 
 <script>
-  document.querySelectorAll('input[name="payment_method"]').forEach(function (radio) {
-    radio.addEventListener('change', function () {
-      document.querySelectorAll('.payment-panel').forEach(function (panel) {
-        panel.hidden = panel.dataset.panel !== radio.value;
+  (function () {
+    var dialog = document.getElementById('order-dialog');
+
+    function openForPlan(btn) {
+      var next = encodeURIComponent('/#plans');
+      if (document.getElementById('order-plan-id')) {
+        document.getElementById('order-plan-id').value = btn.dataset.planId;
+        document.getElementById('order-plan-category').textContent = btn.dataset.planCategory;
+        document.getElementById('order-plan-name').textContent = btn.dataset.planName;
+        document.getElementById('order-plan-specs').textContent = btn.dataset.planSpecs;
+        document.getElementById('order-plan-price').textContent = btn.dataset.planPrice;
+      } else {
+        document.getElementById('order-auth-plan-name').textContent = btn.dataset.planCategory + ' — ' + btn.dataset.planName;
+        document.getElementById('order-auth-register').href = '{{ url_for("auth.register") }}?next=' + next;
+        document.getElementById('order-auth-login').href = '{{ url_for("auth.login") }}?next=' + next;
+      }
+      dialog.showModal();
+    }
+
+    document.querySelectorAll('.order-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () { openForPlan(btn); });
+    });
+
+    var closeBtn = document.getElementById('order-dialog-close');
+    var cancelBtn = document.getElementById('order-dialog-cancel');
+    if (closeBtn) { closeBtn.addEventListener('click', function () { dialog.close(); }); }
+    if (cancelBtn) { cancelBtn.addEventListener('click', function () { dialog.close(); }); }
+
+    document.querySelectorAll('input[name="payment_method"]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        document.querySelectorAll('.payment-panel').forEach(function (panel) {
+          panel.hidden = panel.dataset.panel !== radio.value;
+        });
       });
     });
-  });
 
-  document.querySelectorAll('.order-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      document.getElementById('order-plan-id').value = btn.dataset.planId;
-      document.getElementById('order-plan-name').textContent = btn.dataset.planName;
-      document.getElementById('order-dialog').showModal();
-    });
-  });
-
-  document.querySelectorAll('.wallet-copy-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      navigator.clipboard.writeText(btn.dataset.address).then(function () {
-        var original = btn.textContent;
-        btn.textContent = 'Скопировано';
-        setTimeout(function () { btn.textContent = original; }, 1500);
+    document.querySelectorAll('.wallet-copy-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        navigator.clipboard.writeText(btn.dataset.address).then(function () {
+          var original = btn.textContent;
+          btn.textContent = 'Скопировано';
+          setTimeout(function () { btn.textContent = original; }, 1500);
+        });
       });
     });
-  });
+  })();
+
+  (function () {
+    document.querySelectorAll('.faq-question').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var answer = btn.closest('.faq-item').querySelector('.faq-answer');
+        var open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!open));
+        answer.hidden = open;
+      });
+    });
+  })();
 </script>
 {% endblock %}

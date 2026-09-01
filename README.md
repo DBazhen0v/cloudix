@@ -32,8 +32,15 @@ python run.py
   одну категорию — на главной они сгруппируются автоматически.
 - Тексты на главной — `app/templates/index.html`.
 - Цвета/стили — `app/static/css/style.css`.
-- Ссылка в виджете поддержки и контакты в подвале — `app/templates/base.html`
-  (сейчас placeholder `@your_telegram` / `hello@example.com`).
+- Контакты поддержки (Telegram и email) — не захардкожены в шаблонах.
+  Пока переменные не заданы, футер и виджет поддержки честно ничего не
+  показывают вместо выдуманных `@your_telegram` / `hello@example.com`.
+  Впишите реальные контакты в `.env`:
+
+  ```
+  SUPPORT_TELEGRAM_URL=https://t.me/ваш_юзернейм
+  SUPPORT_EMAIL=you@example.com
+  ```
 
 ## Способ оплаты «Криптовалюта»
 

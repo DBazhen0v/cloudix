@@ -18,6 +18,25 @@ def check_csrf_token():
         abort(400)
 
 
+def validate_user_session():
+    """Clear a session pointing at a user_id that no longer exists in the DB.
+
+    On Render's free tier the SQLite file resets on redeploy, so a browser can
+    still hold a valid signed session cookie for a user row that's gone —
+    without this, any authenticated action crashes with a FOREIGN KEY error
+    instead of asking the visitor to log in again.
+    """
+    user_id = session.get("user_id")
+    if user_id is None:
+        return
+
+    from .db import get_db
+
+    exists = get_db().execute("SELECT 1 FROM users WHERE id = ?", (user_id,)).fetchone()
+    if exists is None:
+        session.pop("user_id", None)
+
+
 def admin_login_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):

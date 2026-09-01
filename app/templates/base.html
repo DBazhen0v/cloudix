@@ -1,41 +1,84 @@
 <!doctype html>
+{% from "_icons.html" import icon_menu, icon_close, icon_cube %}
 <html lang="ru">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Серверы{% endblock %}</title>
+  <title>{% block title %}Cloudix — серверы под ключ{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Аренда и настройка серверов для ботов, сайтов, приложений и игровых проектов. Готовый сервер с доступом администратора.{% endblock %}">
+  <meta property="og:title" content="Cloudix — серверы под ключ">
+  <meta property="og:description" content="Аренда и настройка серверов для ботов, сайтов, приложений и игровых проектов.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#070b14">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236d8bff'/%3E%3Cstop offset='1' stop-color='%238f6dff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='24' height='24' rx='6' fill='%23070b14'/%3E%3Ccircle cx='12' cy='12' r='6' fill='url(%23g)'/%3E%3C/svg%3E" type="image/svg+xml">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Перейти к содержимому</a>
+
   <header class="site-header">
     <div class="header-inner">
       <a class="logo" href="{{ url_for('shop.index') }}">
-        <span class="logo-mark"></span>
-        Серверы
+        <span class="logo-mark" aria-hidden="true">{{ icon_cube(20) }}</span>
+        Cloudix
       </a>
+
       {% block nav %}
-      <nav class="site-nav">
+      <nav class="site-nav" aria-label="Основная навигация">
+        <a href="{{ url_for('shop.index') }}#use-cases">Серверы</a>
         <a href="{{ url_for('shop.index') }}#plans">Тарифы</a>
         <a href="{{ url_for('shop.index') }}#how">Как это работает</a>
-        <a href="{{ url_for('shop.index') }}#faq">Вопросы</a>
+        <a href="{{ url_for('shop.index') }}#faq">FAQ</a>
       </nav>
-      {% if user_logged_in %}
-        <a class="btn btn-small btn-secondary" href="{{ url_for('cabinet.index') }}">Личный кабинет</a>
-        <form method="post" action="{{ url_for('auth.logout') }}" class="nav-logout-form">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-          <button type="submit" class="btn btn-small btn-secondary">Выйти</button>
-        </form>
-      {% else %}
-        <a class="btn btn-small btn-secondary" href="{{ url_for('auth.login') }}">Войти</a>
-        <a class="btn btn-small" href="{{ url_for('auth.register') }}">Регистрация</a>
-      {% endif %}
+
+      <div class="header-actions">
+        {% if user_logged_in %}
+          <a class="btn btn-small btn-secondary" href="{{ url_for('cabinet.index') }}">Личный кабинет</a>
+          <form method="post" action="{{ url_for('auth.logout') }}" class="nav-logout-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="btn btn-small btn-secondary">Выйти</button>
+          </form>
+        {% else %}
+          <a class="btn btn-small btn-secondary" href="{{ url_for('auth.login') }}">Войти</a>
+          <a class="btn btn-small" href="{{ url_for('auth.register') }}">Регистрация</a>
+        {% endif %}
+      </div>
+
+      <button type="button" class="mobile-menu-toggle" id="mobile-menu-toggle" aria-expanded="false" aria-controls="mobile-menu">
+        <span class="mobile-menu-icon mobile-menu-icon-open" aria-hidden="true">{{ icon_menu() }}</span>
+        <span class="mobile-menu-icon mobile-menu-icon-close" aria-hidden="true" hidden>{{ icon_close() }}</span>
+        <span class="sr-only">Открыть меню</span>
+      </button>
       {% endblock %}
     </div>
   </header>
 
+  {% block mobile_menu %}
+  <div class="mobile-menu" id="mobile-menu" hidden>
+    <nav aria-label="Мобильная навигация">
+      <a href="{{ url_for('shop.index') }}#use-cases">Серверы</a>
+      <a href="{{ url_for('shop.index') }}#plans">Тарифы</a>
+      <a href="{{ url_for('shop.index') }}#how">Как это работает</a>
+      <a href="{{ url_for('shop.index') }}#faq">FAQ</a>
+    </nav>
+    <div class="mobile-menu-actions">
+      {% if user_logged_in %}
+        <a class="btn btn-secondary btn-full" href="{{ url_for('cabinet.index') }}">Личный кабинет</a>
+        <form method="post" action="{{ url_for('auth.logout') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit" class="btn btn-secondary btn-full">Выйти</button>
+        </form>
+      {% else %}
+        <a class="btn btn-secondary btn-full" href="{{ url_for('auth.login') }}">Войти</a>
+        <a class="btn btn-full" href="{{ url_for('auth.register') }}">Регистрация</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endblock %}
+
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-      <div class="flash-list">
+      <div class="flash-list" role="status">
         {% for category, message in messages %}
           <div class="flash flash-{{ category }}">{{ message }}</div>
         {% endfor %}
@@ -43,45 +86,102 @@
     {% endif %}
   {% endwith %}
 
-  <main>
+  <main id="main-content">
     {% block content %}{% endblock %}
   </main>
 
+  {% block footer %}
   <footer class="site-footer">
     <div class="footer-inner">
-      <div>
-        <span class="logo-mark"></span>
-        <strong>Серверы</strong>
+      <div class="footer-brand">
+        <a class="logo" href="{{ url_for('shop.index') }}">
+          <span class="logo-mark" aria-hidden="true">{{ icon_cube(20) }}</span>
+          Cloudix
+        </a>
+        <p>Серверы под ключ для ботов, сайтов, приложений и игровых проектов — с ручной настройкой и доступом администратора.</p>
       </div>
-      <p>Пишите нам: <a href="#">@your_telegram</a> · <a href="#">hello@example.com</a></p>
-      <span class="footer-copy">&copy; 2026 Серверы</span>
+
+      <div class="footer-col">
+        <h2>Сервис</h2>
+        <a href="{{ url_for('shop.index') }}#use-cases">Серверы</a>
+        <a href="{{ url_for('shop.index') }}#plans">Тарифы</a>
+        <a href="{{ url_for('shop.index') }}#how">Как это работает</a>
+        <a href="{{ url_for('shop.index') }}#faq">FAQ</a>
+      </div>
+
+      {% if support_telegram_url or support_email %}
+      <div class="footer-col">
+        <h2>Поддержка</h2>
+        {% if support_telegram_url %}<a href="{{ support_telegram_url }}" target="_blank" rel="noopener">Telegram</a>{% endif %}
+        {% if support_email %}<a href="mailto:{{ support_email }}">{{ support_email }}</a>{% endif %}
+      </div>
+      {% endif %}
     </div>
+    <div class="footer-bottom">© 2026 Cloudix</div>
   </footer>
+  {% endblock %}
 
   {% block support_widget %}
   <div class="support-widget">
-    <div class="support-panel" id="support-panel" hidden>
+    <div class="support-panel" id="support-panel" role="dialog" aria-label="Поддержка" hidden>
       <div class="support-panel-head">
-        <strong>Поддержка</strong>
+        <strong>Нужна помощь?</strong>
         <button type="button" class="support-close" id="support-close" aria-label="Закрыть">&times;</button>
       </div>
-      <p>Чат поддержки скоро заработает здесь. Пока самый быстрый способ связаться — Telegram:</p>
-      <a class="btn btn-full" href="#" target="_blank" rel="noopener">@your_telegram</a>
+      <p>Мы ответим и поможем подобрать конфигурацию.</p>
+      {% if support_telegram_url %}
+      <a class="btn btn-full" href="{{ support_telegram_url }}" target="_blank" rel="noopener">Написать в Telegram</a>
+      {% else %}
+      <p class="support-panel-note">Онлайн-чат подключается — пока оставьте заявку на сайте, и мы свяжемся с вами сами.</p>
+      {% endif %}
     </div>
-    <button type="button" class="support-button" id="support-toggle">Поддержка</button>
+    <button type="button" class="support-button" id="support-toggle" aria-expanded="false" aria-controls="support-panel">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>
+      <span class="sr-only">Открыть поддержку</span>
+    </button>
   </div>
   <script>
     (function () {
       var toggle = document.getElementById('support-toggle');
       var panel = document.getElementById('support-panel');
       var close = document.getElementById('support-close');
-      toggle.addEventListener('click', function () { panel.hidden = !panel.hidden; });
-      close.addEventListener('click', function () { panel.hidden = true; });
+      function setOpen(open) {
+        panel.hidden = !open;
+        toggle.setAttribute('aria-expanded', String(open));
+        if (open) { close.focus(); }
+      }
+      toggle.addEventListener('click', function () { setOpen(panel.hidden); });
+      close.addEventListener('click', function () { setOpen(false); toggle.focus(); });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !panel.hidden) { setOpen(false); toggle.focus(); }
+      });
     })();
   </script>
   {% endblock %}
 
   <script>
+    (function () {
+      var toggle = document.getElementById('mobile-menu-toggle');
+      var menu = document.getElementById('mobile-menu');
+      if (!toggle || !menu) { return; }
+      var iconOpen = toggle.querySelector('.mobile-menu-icon-open');
+      var iconClose = toggle.querySelector('.mobile-menu-icon-close');
+      function setOpen(open) {
+        menu.hidden = !open;
+        toggle.setAttribute('aria-expanded', String(open));
+        iconOpen.hidden = open;
+        iconClose.hidden = !open;
+        document.body.classList.toggle('mobile-menu-open', open);
+      }
+      toggle.addEventListener('click', function () { setOpen(menu.hidden); });
+      menu.querySelectorAll('a, button').forEach(function (el) {
+        el.addEventListener('click', function () { setOpen(false); });
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !menu.hidden) { setOpen(false); toggle.focus(); }
+      });
+    })();
+
     document.querySelectorAll('.input-eye-toggle').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var input = document.getElementById(btn.dataset.target);

@@ -1,0 +1,32 @@
+{# Shared inline SVG icon set — consistent stroke style, no external deps, no emoji. #}
+
+{% macro svg(inner, size=22) %}<svg viewBox="0 0 24 24" width="{{ size }}" height="{{ size }}" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{{ inner | safe }}</svg>{% endmacro %}
+
+{% macro icon_bolt(size=22) %}{{ svg('<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/>', size) }}{% endmacro %}
+{% macro icon_shield(size=22) %}{{ svg('<path d="M12 3 4 6v6c0 4.5 3.2 7.7 8 9 4.8-1.3 8-4.5 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/>', size) }}{% endmacro %}
+{% macro icon_wrench(size=22) %}{{ svg('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2Z"/>', size) }}{% endmacro %}
+{% macro icon_headset(size=22) %}{{ svg('<path d="M3 12a9 9 0 0 1 18 0v5a2 2 0 0 1-2 2h-1v-7h3"/><path d="M3 17v-5h3v7H4a1 1 0 0 1-1-1Z"/>', size) }}{% endmacro %}
+{% macro icon_disk(size=22) %}{{ svg('<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>', size) }}{% endmacro %}
+{% macro icon_bot(size=22) %}{{ svg('<rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V4"/><circle cx="12" cy="3" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="14" r="1.2" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1.2" fill="currentColor" stroke="none"/><path d="M9 18h6"/>', size) }}{% endmacro %}
+{% macro icon_globe(size=22) %}{{ svg('<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/>', size) }}{% endmacro %}
+{% macro icon_api(size=22) %}{{ svg('<path d="m8 6-5 6 5 6"/><path d="m16 6 5 6-5 6"/><path d="m13 4-2 16"/>', size) }}{% endmacro %}
+{% macro icon_layers(size=22) %}{{ svg('<path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/>', size) }}{% endmacro %}
+{% macro icon_cube(size=22) %}{{ svg('<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="M4.5 7.5 12 12l7.5-4.5"/><path d="M12 12v9"/>', size) }}{% endmacro %}
+{% macro icon_automation(size=22) %}{{ svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.6 1Z"/>', size) }}{% endmacro %}
+{% macro icon_terminal(size=22) %}{{ svg('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3"/><path d="M13 15h4"/>', size) }}{% endmacro %}
+{% macro icon_flask(size=22) %}{{ svg('<path d="M9 3h6"/><path d="M10 3v6.5L4.8 18a2 2 0 0 0 1.7 3h11a2 2 0 0 0 1.7-3L14 9.5V3"/><path d="M7.5 14h9"/>', size) }}{% endmacro %}
+{% macro icon_server(size=22) %}{{ svg('<rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/><circle cx="7" cy="7.5" r="0.8" fill="currentColor" stroke="none"/><circle cx="7" cy="16.5" r="0.8" fill="currentColor" stroke="none"/>', size) }}{% endmacro %}
+{% macro icon_check_circle(size=22) %}{{ svg('<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>', size) }}{% endmacro %}
+{% macro icon_alert(size=22) %}{{ svg('<path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4"/><circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none"/>', size) }}{% endmacro %}
+{% macro icon_card(size=22) %}{{ svg('<rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M2.5 10h19"/><path d="M6 15h4"/>', size) }}{% endmacro %}
+{% macro icon_crypto(size=22) %}{{ svg('<circle cx="12" cy="12" r="9"/><path d="M9.5 8h3.2a2 2 0 0 1 0 4H9.5m0 0h3.6a2 2 0 0 1 0 4H9.5M11 8V6m0 12v-2m2-10v2m0 8v2"/>', size) }}{% endmacro %}
+{% macro icon_transfer(size=22) %}{{ svg('<path d="m17 7-4-4v3H3v2h10v3Z"/><path d="m7 17 4 4v-3h10v-2H11v-3Z"/>', size) }}{% endmacro %}
+{% macro icon_menu(size=24) %}{{ svg('<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/>', size) }}{% endmacro %}
+{% macro icon_close(size=24) %}{{ svg('<path d="m6 6 12 12"/><path d="m18 6-12 12"/>', size) }}{% endmacro %}
+{% macro icon_chevron_down(size=18) %}{{ svg('<path d="m6 9 6 6 6-6"/>', size) }}{% endmacro %}
+{% macro icon_arrow_right(size=18) %}{{ svg('<path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>', size) }}{% endmacro %}
+{% macro icon_mail(size=16) %}{{ svg('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>', size) }}{% endmacro %}
+{% macro icon_lock(size=16) %}{{ svg('<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>', size) }}{% endmacro %}
+{% macro icon_eye(size=16) %}{{ svg('<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/>', size) }}{% endmacro %}
+{% macro icon_telegram(size=18) %}{{ svg('<path d="m21 4-3 16-8-6-4 3 1-6 12-9-14 8-3-1 19-5Z"/>', size) }}{% endmacro %}
+{% macro icon_user(size=18) %}{{ svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>', size) }}{% endmacro %}
