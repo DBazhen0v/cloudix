@@ -73,7 +73,7 @@
           <input type="hidden" name="action" value="change_plan">
           <select name="details" required>
             {% for plan in plans %}
-            <option value="{{ plan['id'] }}" {% if plan['name'] == s['plan_name'] %}selected{% endif %}>{{ plan['name'] }}</option>
+            <option value="{{ plan['id'] }}" {% if plan['id'] == s['plan_id'] %}selected{% endif %}>{{ plan['category'] }} — {{ plan['name'] }}</option>
             {% endfor %}
           </select>
           <button type="submit" class="btn btn-small">Сменить тариф</button>
