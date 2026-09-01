@@ -57,5 +57,28 @@
       <span class="footer-copy">&copy; 2026 Серверы</span>
     </div>
   </footer>
+
+  {% block support_widget %}
+  <div class="support-widget">
+    <div class="support-panel" id="support-panel" hidden>
+      <div class="support-panel-head">
+        <strong>Поддержка</strong>
+        <button type="button" class="support-close" id="support-close" aria-label="Закрыть">&times;</button>
+      </div>
+      <p>Чат поддержки скоро заработает здесь. Пока самый быстрый способ связаться — Telegram:</p>
+      <a class="btn btn-full" href="#" target="_blank" rel="noopener">@your_telegram</a>
+    </div>
+    <button type="button" class="support-button" id="support-toggle">Поддержка</button>
+  </div>
+  <script>
+    (function () {
+      var toggle = document.getElementById('support-toggle');
+      var panel = document.getElementById('support-panel');
+      var close = document.getElementById('support-close');
+      toggle.addEventListener('click', function () { panel.hidden = !panel.hidden; });
+      close.addEventListener('click', function () { panel.hidden = true; });
+    })();
+  </script>
+  {% endblock %}
 </body>
 </html>

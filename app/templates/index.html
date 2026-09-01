@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Серверы — игровые серверы под ключ{% endblock %}
+{% block title %}Серверы — аренда серверов под ключ{% endblock %}
 
 {% block content %}
 <section class="hero">
   <span class="eyebrow">Настройка и запуск за 1 день</span>
-  <h1>Игровой сервер под ключ,<br>без головной боли</h1>
-  <p>Выбираете тариф — мы вручную настраиваем и передаём вам готовый сервер с доступом администратора.</p>
+  <h1>Сервер под ключ<br>для любых задач</h1>
+  <p>Боты и скрипты, сайты, игровые сервера — выбираете направление, мы вручную настраиваем и передаём вам готовый сервер с доступом администратора.</p>
   <div class="hero-actions">
     <a href="#plans" class="btn btn-large">Смотреть тарифы</a>
     <a href="#how" class="btn btn-secondary btn-large">Как это работает</a>
@@ -19,7 +19,7 @@
     <div class="step">
       <span class="step-num">1</span>
       <h3>Выбираете тариф</h3>
-      <p>Смотрите мощность и цену, подбираете под свою игру и число игроков.</p>
+      <p>Смотрите мощность и цену, подбираете под свою задачу — бота, сайт или игровой сервер.</p>
     </div>
     <div class="step">
       <span class="step-num">2</span>
@@ -36,10 +36,11 @@
 
 <section class="plans" id="plans">
   <h2 class="section-title">Тарифы</h2>
+  {% for category, category_plans in plan_groups.items() %}
+  <h3 class="plans-category-title">{{ category }}</h3>
   <div class="plans-grid">
-    {% for plan in plans %}
-    <article class="plan-card {% if loop.index == 2 %}plan-card-featured{% endif %}">
-      {% if loop.index == 2 %}<span class="plan-badge">Популярный</span>{% endif %}
+    {% for plan in category_plans %}
+    <article class="plan-card">
       <h3>{{ plan["name"] }}</h3>
       <p class="plan-desc">{{ plan["description"] }}</p>
       <p class="plan-price">{{ plan["price"] }}</p>
@@ -49,25 +50,26 @@
         {% endfor %}
       </ul>
       {% if user_logged_in %}
-      <button type="button" class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn" data-plan-id="{{ plan['id'] }}" data-plan-name="{{ plan['name'] }}">
+      <button type="button" class="btn btn-full order-btn" data-plan-id="{{ plan['id'] }}" data-plan-name="{{ plan['name'] }}">
         Оставить заявку
       </button>
       {% else %}
-      <a class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full" href="{{ url_for('auth.login', next=url_for('shop.index') + '#plans') }}">
+      <a class="btn btn-full" href="{{ url_for('auth.login', next=url_for('shop.index') + '#plans') }}">
         Войти, чтобы заказать
       </a>
       {% endif %}
     </article>
     {% endfor %}
   </div>
+  {% endfor %}
 </section>
 
 <section class="faq" id="faq">
   <h2 class="section-title">Вопросы и ответы</h2>
   <div class="faq-list">
     <details>
-      <summary>Какие игры поддерживаются?</summary>
-      <p>Настраиваем сервера под большинство популярных игр — уточните вашу игру в заявке, и мы подтвердим детали.</p>
+      <summary>Что именно вы настраиваете?</summary>
+      <p>Сервера под ботов и скрипты, веб-хостинг для сайтов и приложений, игровые сервера (Minecraft) — уточните детали задачи в заявке, и мы подтвердим настройку.</p>
     </details>
     <details>
       <summary>Как быстро сервер будет готов?</summary>
@@ -76,6 +78,10 @@
     <details>
       <summary>Можно ли поменять тариф позже?</summary>
       <p>Да, напишите нам, и мы поможем перенести сервер на другой тариф без потери данных.</p>
+    </details>
+    <details>
+      <summary>Можно ли вернуть деньги?</summary>
+      <p>Нет, возврат средств не производится. Перед оплатой уточните все детали тарифа в заявке или через поддержку.</p>
     </details>
   </div>
 </section>
@@ -88,7 +94,7 @@
     <h3>Заявка на тариф «<span id="order-plan-name"></span>»</h3>
 
     <label for="comment">Комментарий (необязательно)</label>
-    <textarea id="comment" name="comment" maxlength="1000" rows="3" placeholder="Например: какая игра, сколько игроков"></textarea>
+    <textarea id="comment" name="comment" maxlength="1000" rows="3" placeholder="Например: для чего сервер, какие требования"></textarea>
 
     <label class="payment-label">Способ оплаты</label>
     <div class="payment-methods">
@@ -115,11 +121,22 @@
       <p class="payment-note">Демо: приём карт ещё не подключён, поля никуда не отправляются. Заявку подтвердит администратор вручную.</p>
     </div>
     <div class="payment-panel" data-panel="crypto" hidden>
-      <p class="payment-note">Адрес кошелька пришлём вместе с подтверждением заявки — оплата криптовалютой пока обрабатывается вручную.</p>
+      {% if crypto_wallet_address %}
+      <label class="payment-label">Адрес для перевода</label>
+      <div class="wallet-address">
+        <code>{{ crypto_wallet_address }}</code>
+        <button type="button" class="btn btn-small btn-secondary wallet-copy-btn" data-address="{{ crypto_wallet_address }}">Скопировать</button>
+      </div>
+      <p class="payment-note">Отправьте точную сумму тарифа на этот адрес и укажите email в комментарии к заявке — так мы быстрее подтвердим оплату.</p>
+      {% else %}
+      <p class="payment-note">Адрес кошелька ещё не подключён — администратор пришлёт его вручную после заявки.</p>
+      {% endif %}
     </div>
     <div class="payment-panel" data-panel="sbp" hidden>
       <p class="payment-note">Реквизиты для перевода пришлёт администратор после заявки.</p>
     </div>
+
+    <p class="payment-note payment-refund-note">Возврат средств не производится — уточняйте все детали до оплаты.</p>
 
     <div class="dialog-actions">
       <button type="button" class="btn btn-secondary" onclick="document.getElementById('order-dialog').close()">Отмена</button>
@@ -142,6 +159,16 @@
       document.getElementById('order-plan-id').value = btn.dataset.planId;
       document.getElementById('order-plan-name').textContent = btn.dataset.planName;
       document.getElementById('order-dialog').showModal();
+    });
+  });
+
+  document.querySelectorAll('.wallet-copy-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      navigator.clipboard.writeText(btn.dataset.address).then(function () {
+        var original = btn.textContent;
+        btn.textContent = 'Скопировано';
+        setTimeout(function () { btn.textContent = original; }, 1500);
+      });
     });
   });
 </script>

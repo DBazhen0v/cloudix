@@ -26,7 +26,16 @@ def inject_csrf_token():
 def index():
     db = get_db()
     plans = db.execute("SELECT * FROM plans WHERE is_active = 1 ORDER BY id").fetchall()
-    return render_template("index.html", plans=plans)
+
+    plan_groups = {}
+    for plan in plans:
+        plan_groups.setdefault(plan["category"], []).append(plan)
+
+    return render_template(
+        "index.html",
+        plan_groups=plan_groups,
+        crypto_wallet_address=current_app.config["CRYPTO_WALLET_ADDRESS"],
+    )
 
 
 @bp.route("/order", methods=["POST"])

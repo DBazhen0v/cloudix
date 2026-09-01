@@ -10,6 +10,7 @@ def create_app():
     app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
     app.config["ADMIN_PASSWORD_HASH"] = os.environ["ADMIN_PASSWORD_HASH"]
     app.config["DATABASE"] = str(Path(app.instance_path) / "shop.sqlite3")
+    app.config["CRYPTO_WALLET_ADDRESS"] = os.environ.get("CRYPTO_WALLET_ADDRESS", "")
 
     os.makedirs(app.instance_path, exist_ok=True)
 

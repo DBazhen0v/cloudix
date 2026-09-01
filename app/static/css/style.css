@@ -222,23 +222,14 @@ section:last-of-type {
   border-color: rgba(109, 139, 255, 0.4);
 }
 
-.plan-card-featured {
-  background: linear-gradient(180deg, var(--surface-2), var(--surface));
-  border-color: rgba(109, 139, 255, 0.5);
-  box-shadow: var(--shadow);
+.plans-category-title {
+  font-size: 1.1rem;
+  color: var(--muted);
+  margin: 2.5rem 0 1rem;
 }
 
-.plan-badge {
-  position: absolute;
-  top: -13px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.3rem 0.9rem;
-  border-radius: 999px;
+.plans-category-title:first-of-type {
+  margin-top: 0;
 }
 
 .plan-card h3 {
@@ -486,6 +477,86 @@ form textarea:focus {
   color: var(--muted);
   font-size: 0.8rem;
   margin: 0.5rem 0 0;
+}
+
+.payment-refund-note {
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+  margin-top: 1.1rem;
+}
+
+.wallet-address {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.6rem;
+  margin-top: 0.3rem;
+}
+
+.wallet-address code {
+  flex: 1;
+  overflow-wrap: anywhere;
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+/* Support widget */
+
+.support-widget {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 20;
+}
+
+.support-button {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 0.75rem 1.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.support-panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.75rem);
+  width: 260px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.1rem;
+  box-shadow: var(--shadow);
+}
+
+.support-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.support-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.support-panel p {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0 0 0.9rem;
 }
 
 /* Flash messages */

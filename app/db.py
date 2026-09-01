@@ -21,6 +21,7 @@ def close_db(e=None):
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS plans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category TEXT NOT NULL,
     name TEXT NOT NULL,
     description TEXT NOT NULL,
     specs TEXT NOT NULL,
@@ -63,22 +64,25 @@ CREATE TABLE IF NOT EXISTS action_requests (
 
 SEED_PLANS = [
     (
-        "Старт",
-        "Лёгкий сервер для небольшой группы игроков.",
-        "2 vCPU, 4 GB RAM, 40 GB NVMe",
-        "от 990 ₽/мес",
+        "Серверы для ботов и скриптов",
+        "Стандарт",
+        "Круглосуточный сервер для Telegram/Discord-ботов и скриптов на Python/Node.js.",
+        "2 vCPU, 2 GB RAM, 20 GB NVMe",
+        "от 490 ₽/мес",
     ),
     (
+        "Веб-хостинг",
         "Стандарт",
-        "Оптимальный баланс мощности и цены для активного сообщества.",
+        "Хостинг для сайтов и веб-приложений на быстром NVMe-диске.",
+        "2 vCPU, 4 GB RAM, 40 GB NVMe",
+        "от 690 ₽/мес",
+    ),
+    (
+        "Minecraft-сервера",
+        "Стандарт",
+        "Готовый сервер для игры с друзьями, поддержка модов и плагинов.",
         "4 vCPU, 8 GB RAM, 80 GB NVMe",
         "от 1990 ₽/мес",
-    ),
-    (
-        "Максимум",
-        "Для крупных проектов и модов с высокой нагрузкой.",
-        "8 vCPU, 16 GB RAM, 160 GB NVMe",
-        "от 3990 ₽/мес",
     ),
 ]
 
@@ -90,7 +94,7 @@ def init_db():
     count = db.execute("SELECT COUNT(*) AS n FROM plans").fetchone()["n"]
     if count == 0:
         db.executemany(
-            "INSERT INTO plans (name, description, specs, price) VALUES (?, ?, ?, ?)",
+            "INSERT INTO plans (category, name, description, specs, price) VALUES (?, ?, ?, ?, ?)",
             SEED_PLANS,
         )
         db.commit()
