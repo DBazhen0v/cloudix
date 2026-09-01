@@ -1,25 +1,26 @@
 {% extends "base.html" %}
+{% from "_auth_shared.html" import auth_tabs, icon_mail, password_field, auth_oauth_grid %}
 
 {% block title %}Регистрация{% endblock %}
 
 {% block content %}
 <section class="auth-form">
-  <h1>Регистрация</h1>
+  {{ auth_tabs('register', next_url) }}
   <form method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <input type="hidden" name="next" value="{{ next_url }}">
 
     <label for="email">Email</label>
-    <input type="email" id="email" name="email" required autofocus>
+    <div class="input-icon">
+      {{ icon_mail() }}
+      <input type="email" id="email" name="email" required autofocus>
+    </div>
 
-    <label for="password">Пароль</label>
-    <input type="password" id="password" name="password" required minlength="8">
-
-    <label for="confirm">Повторите пароль</label>
-    <input type="password" id="confirm" name="confirm" required minlength="8">
+    {{ password_field('password', 'password', 'Пароль', minlength=8) }}
+    {{ password_field('confirm', 'confirm', 'Повторите пароль', minlength=8) }}
 
     <button type="submit" class="btn btn-full">Создать аккаунт</button>
   </form>
-  <p class="auth-switch">Уже есть аккаунт? <a href="{{ url_for('auth.login', next=next_url) }}">Войти</a></p>
+  {{ auth_oauth_grid() }}
 </section>
 {% endblock %}

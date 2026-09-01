@@ -80,5 +80,15 @@
     })();
   </script>
   {% endblock %}
+
+  <script>
+    document.querySelectorAll('.input-eye-toggle').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var input = document.getElementById(btn.dataset.target);
+        input.type = input.type === 'password' ? 'text' : 'password';
+        btn.classList.toggle('is-visible', input.type === 'text');
+      });
+    });
+  </script>
 </body>
 </html>

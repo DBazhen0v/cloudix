@@ -23,11 +23,15 @@ def index():
         (session["user_id"],),
     ).fetchall()
     plans = db.execute("SELECT * FROM plans WHERE is_active = 1 ORDER BY id").fetchall()
+    user = db.execute(
+        "SELECT email FROM users WHERE id = ?", (session["user_id"],)
+    ).fetchone()
     return render_template(
         "cabinet.html",
         subscriptions=subscriptions,
         plans=plans,
         payment_methods=PAYMENT_METHODS,
+        user_email=user["email"],
     )
 
 
