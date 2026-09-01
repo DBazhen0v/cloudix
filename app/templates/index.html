@@ -115,7 +115,7 @@
       <article class="plan-card {% if loop.index == 2 %}plan-card-featured{% endif %}" data-index="{{ loop.index0 }}">
         {% if loop.index == 2 %}<span class="plan-badge">Популярный выбор</span>{% endif %}
         <h4 class="plan-card-heading">
-          <button type="button" class="plan-card-toggle" aria-expanded="{{ 'true' if loop.index == 2 else 'false' }}">
+          <button type="button" class="plan-card-toggle" aria-expanded="false">
             <span class="plan-card-toggle-text">
               <span class="plan-card-name">{{ plan["name"] }}</span>
               <span class="plan-card-price">{{ plan["price"] }}</span>
@@ -123,7 +123,7 @@
             <span class="plan-card-chevron" aria-hidden="true">{{ icon_chevron_down(16) }}</span>
           </button>
         </h4>
-        <div class="plan-card-details" {% if loop.index != 2 %}hidden{% endif %}>
+        <div class="plan-card-details" hidden>
           <p class="plan-desc">{{ plan["description"] }}</p>
           <ul class="plan-features">
             {% for feature in plan["specs"].split(",") %}
@@ -147,7 +147,7 @@
     </div>
     <div class="plans-dots" role="group" aria-label="Тарифы: {{ category }}">
       {% for plan in category_plans %}
-      <button type="button" class="plans-dot {% if loop.index == 2 %}active{% endif %}" data-index="{{ loop.index0 }}" aria-label="Показать тариф «{{ plan['name'] }}»"></button>
+      <button type="button" class="plans-dot {% if loop.index == 1 %}active{% endif %}" data-index="{{ loop.index0 }}" aria-label="Показать тариф «{{ plan['name'] }}»"></button>
       {% endfor %}
     </div>
   </div>
