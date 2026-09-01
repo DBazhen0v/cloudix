@@ -43,6 +43,11 @@ def index():
     )
 
 
+@bp.route("/terms")
+def terms():
+    return render_template("terms.html")
+
+
 @bp.route("/order", methods=["POST"])
 def order():
     check_csrf_token()

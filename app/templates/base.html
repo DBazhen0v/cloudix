@@ -117,7 +117,9 @@
       </div>
       {% endif %}
     </div>
-    <div class="footer-bottom">© 2026 Cloudix</div>
+    <div class="footer-bottom">
+      © 2026 Cloudix · <a href="{{ url_for('shop.terms') }}">Условия использования</a>
+    </div>
   </footer>
   {% endblock %}
 
@@ -195,6 +197,31 @@
         btn.classList.toggle('is-visible', input.type === 'text');
       });
     });
+
+    (function () {
+      var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduceMotion || !('IntersectionObserver' in window)) { return; }
+
+      var targets = document.querySelectorAll(
+        '.trust-item, .use-case-card, .timeline-step, .plan-card, .faq-item'
+      );
+      if (!targets.length) { return; }
+
+      targets.forEach(function (el) { el.classList.add('reveal-init'); });
+
+      var observer = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('reveal-visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+      );
+      targets.forEach(function (el) { observer.observe(el); });
+    })();
   </script>
 </body>
 </html>

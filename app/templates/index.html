@@ -110,6 +110,7 @@
     {{ category }}
   </h3>
   <div class="plans-carousel">
+    <button type="button" class="carousel-arrow carousel-arrow-prev" data-dir="-1" aria-label="Предыдущий тариф">{{ icon_arrow_right(18) }}</button>
     <div class="plans-grid" data-carousel>
       {% for plan in category_plans %}
       <article class="plan-card {% if loop.index == 2 %}plan-card-featured{% endif %}" data-index="{{ loop.index0 }}">
@@ -124,27 +125,30 @@
           </button>
         </h4>
         <div class="plan-card-details" hidden>
-          <p class="plan-desc">{{ plan["description"] }}</p>
-          <ul class="plan-features">
-            {% for feature in plan["specs"].split(",") %}
-            <li>{{ feature.strip() }}</li>
-            {% endfor %}
-          </ul>
-          <button
-            type="button"
-            class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn"
-            data-plan-id="{{ plan['id'] }}"
-            data-plan-name="{{ plan['name'] }}"
-            data-plan-category="{{ plan['category'] }}"
-            data-plan-specs="{{ plan['specs'] }}"
-            data-plan-price="{{ plan['price'] }}"
-          >
-            Выбрать тариф
-          </button>
+          <div class="plan-card-details-inner">
+            <p class="plan-desc">{{ plan["description"] }}</p>
+            <ul class="plan-features">
+              {% for feature in plan["specs"].split(",") %}
+              <li>{{ feature.strip() }}</li>
+              {% endfor %}
+            </ul>
+            <button
+              type="button"
+              class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn"
+              data-plan-id="{{ plan['id'] }}"
+              data-plan-name="{{ plan['name'] }}"
+              data-plan-category="{{ plan['category'] }}"
+              data-plan-specs="{{ plan['specs'] }}"
+              data-plan-price="{{ plan['price'] }}"
+            >
+              Выбрать тариф
+            </button>
+          </div>
         </div>
       </article>
       {% endfor %}
     </div>
+    <button type="button" class="carousel-arrow carousel-arrow-next" data-dir="1" aria-label="Следующий тариф">{{ icon_arrow_right(18) }}</button>
     <div class="plans-dots" role="group" aria-label="Тарифы: {{ category }}">
       {% for plan in category_plans %}
       <button type="button" class="plans-dot {% if loop.index == 1 %}active{% endif %}" data-index="{{ loop.index0 }}" aria-label="Показать тариф «{{ plan['name'] }}»"></button>
@@ -162,7 +166,9 @@
         <span>Что именно вы настраиваете?</span>
       </button></h3>
       <div class="faq-answer" hidden>
-        <p>Сервера под ботов и скрипты, веб-хостинг для сайтов и приложений, игровые сервера (Minecraft) — уточните детали задачи в заявке, и мы подтвердим настройку.</p>
+        <div class="faq-answer-inner">
+          <p>Сервера под ботов и скрипты, веб-хостинг для сайтов и приложений, игровые сервера (Minecraft) — уточните детали задачи в заявке, и мы подтвердим настройку.</p>
+        </div>
       </div>
     </div>
     <div class="faq-item">
@@ -170,7 +176,9 @@
         <span>Как быстро сервер будет готов?</span>
       </button></h3>
       <div class="faq-answer" hidden>
-        <p>Обычно в течение одного дня после заявки — мы свяжемся с вами, чтобы уточнить детали настройки.</p>
+        <div class="faq-answer-inner">
+          <p>Обычно в течение одного дня после заявки — мы свяжемся с вами, чтобы уточнить детали настройки. Заявки принимаем и обрабатываем каждый день, без выходных — если нужен срочный запуск, напишите об этом в комментарии к заявке.</p>
+        </div>
       </div>
     </div>
     <div class="faq-item">
@@ -178,15 +186,29 @@
         <span>Можно ли поменять тариф позже?</span>
       </button></h3>
       <div class="faq-answer" hidden>
-        <p>Да, из личного кабинета можно отправить заявку на смену тарифа — администратор перенесёт сервер без потери данных.</p>
+        <div class="faq-answer-inner">
+          <p>Да, из личного кабинета можно отправить заявку на смену тарифа — администратор перенесёт сервер без потери данных.</p>
+        </div>
       </div>
     </div>
     <div class="faq-item">
       <h3><button type="button" class="faq-question" aria-expanded="false">
-        <span>Можно ли вернуть деньги?</span>
+        <span>Что за сервер я получаю — VDS или что-то другое?</span>
       </button></h3>
       <div class="faq-answer" hidden>
-        <p>Нет, возврат средств не производится. Перед оплатой уточните все детали тарифа в заявке или через поддержку.</p>
+        <div class="faq-answer-inner">
+          <p>Это отдельный виртуальный сервер (VDS) с root-доступом — вы можете настраивать его как обычный Linux-сервер, устанавливать своё ПО и подключаться по SSH.</p>
+        </div>
+      </div>
+    </div>
+    <div class="faq-item">
+      <h3><button type="button" class="faq-question" aria-expanded="false">
+        <span>Как я получу доступ к серверу?</span>
+      </button></h3>
+      <div class="faq-answer" hidden>
+        <div class="faq-answer-inner">
+          <p>После настройки данные для подключения (IP-адрес и root-доступ — пароль или SSH-ключ, по договорённости) появятся в разделе «Мои сервера» в личном кабинете.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -323,40 +345,60 @@
   })();
 
   (function () {
+    // Smooth accordion open/close: keep `hidden` for a11y (no focusable content
+    // while closed) but delay setting it until the collapse transition finishes,
+    // and remove it up front (before the height transition starts) on open.
+    function setExpanded(button, panel, expand) {
+      button.setAttribute('aria-expanded', String(expand));
+      if (expand) {
+        panel.hidden = false;
+        window.requestAnimationFrame(function () {
+          panel.classList.add('is-open');
+        });
+      } else {
+        panel.classList.remove('is-open');
+        var onEnd = function (e) {
+          if (e.target !== panel) { return; }
+          panel.hidden = true;
+          panel.removeEventListener('transitionend', onEnd);
+        };
+        panel.addEventListener('transitionend', onEnd);
+      }
+    }
+
     document.querySelectorAll('.faq-question').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var answer = btn.closest('.faq-item').querySelector('.faq-answer');
         var open = btn.getAttribute('aria-expanded') === 'true';
-        btn.setAttribute('aria-expanded', String(!open));
-        answer.hidden = open;
+        setExpanded(btn, answer, !open);
+      });
+    });
+
+    document.querySelectorAll('.plan-card-toggle').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var details = btn.closest('.plan-card').querySelector('.plan-card-details');
+        var open = btn.getAttribute('aria-expanded') === 'true';
+        setExpanded(btn, details, !open);
       });
     });
   })();
 
   (function () {
-    document.querySelectorAll('.plan-card-toggle').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var details = btn.closest('.plan-card').querySelector('.plan-card-details');
-        var open = btn.getAttribute('aria-expanded') === 'true';
-        btn.setAttribute('aria-expanded', String(!open));
-        details.hidden = open;
-      });
-    });
-
     document.querySelectorAll('.plans-carousel').forEach(function (wrap) {
       var track = wrap.querySelector('[data-carousel]');
       var dots = wrap.querySelectorAll('.plans-dot');
       var cards = track.querySelectorAll('.plan-card');
+      var prevBtn = wrap.querySelector('.carousel-arrow-prev');
+      var nextBtn = wrap.querySelector('.carousel-arrow-next');
       if (!dots.length || !cards.length) { return; }
 
-      wrap.addEventListener('click', function (e) {
-        var dot = e.target.closest('.plans-dot');
-        if (!dot) { return; }
-        var card = track.querySelector('.plan-card[data-index="' + dot.dataset.index + '"]');
+      function scrollToIndex(index) {
+        var clamped = Math.max(0, Math.min(cards.length - 1, index));
+        var card = track.querySelector('.plan-card[data-index="' + clamped + '"]');
         if (card) { card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }
-      });
+      }
 
-      function updateActiveDot() {
+      function currentIndex() {
         var trackCenter = track.scrollLeft + track.clientWidth / 2;
         var closestIndex = 0;
         var closestDistance = Infinity;
@@ -368,9 +410,24 @@
             closestIndex = i;
           }
         });
+        return closestIndex;
+      }
+
+      wrap.addEventListener('click', function (e) {
+        var dot = e.target.closest('.plans-dot');
+        if (dot) { scrollToIndex(Number(dot.dataset.index)); }
+      });
+
+      if (prevBtn) { prevBtn.addEventListener('click', function () { scrollToIndex(currentIndex() - 1); }); }
+      if (nextBtn) { nextBtn.addEventListener('click', function () { scrollToIndex(currentIndex() + 1); }); }
+
+      function updateActiveDot() {
+        var closestIndex = currentIndex();
         dots.forEach(function (dot, i) {
           dot.classList.toggle('active', i === closestIndex);
         });
+        if (prevBtn) { prevBtn.disabled = closestIndex === 0; }
+        if (nextBtn) { nextBtn.disabled = closestIndex === cards.length - 1; }
       }
 
       var scrollTimer = null;
