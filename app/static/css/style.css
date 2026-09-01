@@ -731,18 +731,20 @@ section:last-of-type {
 
 .plan-card-details {
   display: grid;
-  grid-template-rows: 0fr;
+  grid-template-rows: minmax(0, 0fr);
+  min-height: 0;
+  overflow: hidden;
   transition: grid-template-rows 0.32s ease;
 }
 
 .plan-card-details.is-open {
-  grid-template-rows: 1fr;
+  grid-template-rows: minmax(0, 1fr);
 }
 
 .plan-card-details-inner {
   min-height: 0;
   overflow: hidden;
-  margin-top: 1.1rem;
+  padding-top: 1.1rem;
   opacity: 0;
   transform: translateY(-4px);
   transition: opacity 0.22s ease, transform 0.22s ease;
@@ -896,12 +898,14 @@ section:last-of-type {
 
 .faq-answer {
   display: grid;
-  grid-template-rows: 0fr;
+  grid-template-rows: minmax(0, 0fr);
+  min-height: 0;
+  overflow: hidden;
   transition: grid-template-rows 0.32s ease;
 }
 
 .faq-answer.is-open {
-  grid-template-rows: 1fr;
+  grid-template-rows: minmax(0, 1fr);
 }
 
 .faq-answer-inner {
