@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_icons.html" import icon_bolt, icon_shield, icon_wrench, icon_headset, icon_disk, icon_bot, icon_globe, icon_api, icon_layers, icon_cube, icon_automation, icon_terminal, icon_flask, icon_check_circle, icon_card, icon_crypto, icon_transfer, icon_arrow_right, icon_close %}
+{% from "_icons.html" import icon_bolt, icon_shield, icon_wrench, icon_headset, icon_disk, icon_bot, icon_globe, icon_api, icon_layers, icon_cube, icon_automation, icon_terminal, icon_flask, icon_check_circle, icon_card, icon_crypto, icon_transfer, icon_arrow_right, icon_close, icon_chevron_down %}
 
 {% block title %}Cloudix — серверы под ключ{% endblock %}
 
@@ -109,31 +109,47 @@
     {% endif %}
     {{ category }}
   </h3>
-  <div class="plans-grid">
-    {% for plan in category_plans %}
-    <article class="plan-card {% if loop.index == 2 %}plan-card-featured{% endif %}">
-      {% if loop.index == 2 %}<span class="plan-badge">Популярный выбор</span>{% endif %}
-      <h4>{{ plan["name"] }}</h4>
-      <p class="plan-desc">{{ plan["description"] }}</p>
-      <p class="plan-price">{{ plan["price"] }}</p>
-      <ul class="plan-features">
-        {% for feature in plan["specs"].split(",") %}
-        <li>{{ feature.strip() }}</li>
-        {% endfor %}
-      </ul>
-      <button
-        type="button"
-        class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn"
-        data-plan-id="{{ plan['id'] }}"
-        data-plan-name="{{ plan['name'] }}"
-        data-plan-category="{{ plan['category'] }}"
-        data-plan-specs="{{ plan['specs'] }}"
-        data-plan-price="{{ plan['price'] }}"
-      >
-        Выбрать тариф
-      </button>
-    </article>
-    {% endfor %}
+  <div class="plans-carousel">
+    <div class="plans-grid" data-carousel>
+      {% for plan in category_plans %}
+      <article class="plan-card {% if loop.index == 2 %}plan-card-featured{% endif %}" data-index="{{ loop.index0 }}">
+        {% if loop.index == 2 %}<span class="plan-badge">Популярный выбор</span>{% endif %}
+        <h4 class="plan-card-heading">
+          <button type="button" class="plan-card-toggle" aria-expanded="{{ 'true' if loop.index == 2 else 'false' }}">
+            <span class="plan-card-toggle-text">
+              <span class="plan-card-name">{{ plan["name"] }}</span>
+              <span class="plan-card-price">{{ plan["price"] }}</span>
+            </span>
+            <span class="plan-card-chevron" aria-hidden="true">{{ icon_chevron_down(16) }}</span>
+          </button>
+        </h4>
+        <div class="plan-card-details" {% if loop.index != 2 %}hidden{% endif %}>
+          <p class="plan-desc">{{ plan["description"] }}</p>
+          <ul class="plan-features">
+            {% for feature in plan["specs"].split(",") %}
+            <li>{{ feature.strip() }}</li>
+            {% endfor %}
+          </ul>
+          <button
+            type="button"
+            class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn"
+            data-plan-id="{{ plan['id'] }}"
+            data-plan-name="{{ plan['name'] }}"
+            data-plan-category="{{ plan['category'] }}"
+            data-plan-specs="{{ plan['specs'] }}"
+            data-plan-price="{{ plan['price'] }}"
+          >
+            Выбрать тариф
+          </button>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    <div class="plans-dots" role="group" aria-label="Тарифы: {{ category }}">
+      {% for plan in category_plans %}
+      <button type="button" class="plans-dot {% if loop.index == 2 %}active{% endif %}" data-index="{{ loop.index0 }}" aria-label="Показать тариф «{{ plan['name'] }}»"></button>
+      {% endfor %}
+    </div>
   </div>
   {% endfor %}
 </section>
@@ -314,6 +330,57 @@
         btn.setAttribute('aria-expanded', String(!open));
         answer.hidden = open;
       });
+    });
+  })();
+
+  (function () {
+    document.querySelectorAll('.plan-card-toggle').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var details = btn.closest('.plan-card').querySelector('.plan-card-details');
+        var open = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!open));
+        details.hidden = open;
+      });
+    });
+
+    document.querySelectorAll('.plans-carousel').forEach(function (wrap) {
+      var track = wrap.querySelector('[data-carousel]');
+      var dots = wrap.querySelectorAll('.plans-dot');
+      var cards = track.querySelectorAll('.plan-card');
+      if (!dots.length || !cards.length) { return; }
+
+      wrap.addEventListener('click', function (e) {
+        var dot = e.target.closest('.plans-dot');
+        if (!dot) { return; }
+        var card = track.querySelector('.plan-card[data-index="' + dot.dataset.index + '"]');
+        if (card) { card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }
+      });
+
+      function updateActiveDot() {
+        var trackCenter = track.scrollLeft + track.clientWidth / 2;
+        var closestIndex = 0;
+        var closestDistance = Infinity;
+        cards.forEach(function (card, i) {
+          var cardCenter = card.offsetLeft + card.offsetWidth / 2;
+          var distance = Math.abs(cardCenter - trackCenter);
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestIndex = i;
+          }
+        });
+        dots.forEach(function (dot, i) {
+          dot.classList.toggle('active', i === closestIndex);
+        });
+      }
+
+      var scrollTimer = null;
+      track.addEventListener('scroll', function () {
+        window.clearTimeout(scrollTimer);
+        scrollTimer = window.setTimeout(updateActiveDot, 100);
+      });
+
+      updateActiveDot();
+      window.setTimeout(updateActiveDot, 400);
     });
   })();
 </script>
