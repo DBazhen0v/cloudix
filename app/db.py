@@ -60,6 +60,16 @@ CREATE TABLE IF NOT EXISTS action_requests (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (subscription_id) REFERENCES subscriptions (id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS support_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    contact TEXT,
+    message TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'new',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
+);
 """
 
 SEED_PLANS = [

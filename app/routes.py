@@ -88,6 +88,31 @@ def order():
     return redirect(url_for("cabinet.index"))
 
 
+@bp.route("/support", methods=["POST"])
+def support_message():
+    check_csrf_token()
+
+    message = request.form.get("message", "").strip()
+    contact = request.form.get("contact", "").strip()
+    next_url = request.form.get("next", "")
+    if not next_url.startswith("/") or next_url.startswith("//"):
+        next_url = url_for("shop.index")
+
+    if not message:
+        flash("Напишите сообщение перед отправкой.", "error")
+        return redirect(next_url)
+
+    db = get_db()
+    db.execute(
+        "INSERT INTO support_messages (user_id, contact, message) VALUES (?, ?, ?)",
+        (session.get("user_id"), contact or None, message),
+    )
+    db.commit()
+
+    flash("Сообщение отправлено — мы свяжемся с вами.", "success")
+    return redirect(next_url)
+
+
 @bp.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
@@ -131,10 +156,20 @@ def admin_dashboard():
         ORDER BY a.created_at
         """
     ).fetchall()
+    support_messages = db.execute(
+        """
+        SELECT sm.*, u.email AS user_email
+        FROM support_messages sm
+        LEFT JOIN users u ON u.id = sm.user_id
+        WHERE sm.status = 'new'
+        ORDER BY sm.created_at
+        """
+    ).fetchall()
     return render_template(
         "admin_dashboard.html",
         subscriptions=subscriptions,
         action_requests=action_requests,
+        support_messages=support_messages,
         payment_methods=PAYMENT_METHODS,
     )
 
@@ -177,4 +212,17 @@ def admin_complete_action(action_id):
     db.commit()
 
     flash("Заявка отмечена выполненной.", "success")
+    return redirect(url_for("shop.admin_dashboard"))
+
+
+@bp.route("/admin/support-messages/<int:message_id>/done", methods=["POST"])
+@admin_login_required
+def admin_complete_support_message(message_id):
+    check_csrf_token()
+
+    db = get_db()
+    db.execute("UPDATE support_messages SET status = 'done' WHERE id = ?", (message_id,))
+    db.commit()
+
+    flash("Сообщение отмечено обработанным.", "success")
     return redirect(url_for("shop.admin_dashboard"))

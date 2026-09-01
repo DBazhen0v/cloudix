@@ -128,12 +128,18 @@
         <strong>Нужна помощь?</strong>
         <button type="button" class="support-close" id="support-close" aria-label="Закрыть">&times;</button>
       </div>
-      <p>Мы ответим и поможем подобрать конфигурацию.</p>
-      {% if support_telegram_url %}
-      <a class="btn btn-full" href="{{ support_telegram_url }}" target="_blank" rel="noopener">Написать в Telegram</a>
-      {% else %}
-      <p class="support-panel-note">Онлайн-чат подключается — пока оставьте заявку на сайте, и мы свяжемся с вами сами.</p>
-      {% endif %}
+      <p>Опишите вопрос — сообщение придёт нам напрямую, и мы свяжемся с вами.</p>
+      <form method="post" action="{{ url_for('shop.support_message') }}" class="support-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="next" value="{{ request.path }}">
+        {% if not user_logged_in %}
+        <label for="support-contact" class="sr-only">Как с вами связаться</label>
+        <input type="text" id="support-contact" name="contact" placeholder="Email или Telegram для ответа" maxlength="200">
+        {% endif %}
+        <label for="support-message" class="sr-only">Сообщение</label>
+        <textarea id="support-message" name="message" rows="3" placeholder="Опишите вопрос..." required maxlength="1000"></textarea>
+        <button type="submit" class="btn btn-full">Отправить</button>
+      </form>
     </div>
     <button type="button" class="support-button" id="support-toggle" aria-expanded="false" aria-controls="support-panel">
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/></svg>

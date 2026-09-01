@@ -94,4 +94,37 @@
 {% else %}
 <p>Заявок на действия нет.</p>
 {% endif %}
+
+<h2 class="admin-section-title">Сообщения в поддержку</h2>
+{% if support_messages %}
+<div class="table-scroll">
+<table class="orders-table">
+  <thead>
+    <tr>
+      <th>Дата</th>
+      <th>От кого</th>
+      <th>Сообщение</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for m in support_messages %}
+    <tr>
+      <td>{{ m["created_at"] }}</td>
+      <td>{{ m["user_email"] or m["contact"] or "аноним" }}</td>
+      <td>{{ m["message"] }}</td>
+      <td>
+        <form method="post" action="{{ url_for('shop.admin_complete_support_message', message_id=m['id']) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit" class="btn btn-small btn-secondary">Готово</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>Сообщений в поддержку нет.</p>
+{% endif %}
 {% endblock %}
