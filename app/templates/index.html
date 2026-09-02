@@ -415,16 +415,24 @@
         track.classList.remove('is-easing');
       }
 
+      var isArrowScrolling = false;
+
       function syncStepIndex() {
         stepIndex = Math.round(track.scrollLeft / stepSize());
       }
 
       function scrollByStep(dir) {
         cancelWheelEase();
-        syncStepIndex();
+        // While our own smooth-scroll from a previous click is still
+        // settling, track.scrollLeft is a transient in-flight value, not
+        // where we're actually headed - trust the tracked index instead
+        // of re-reading it, or a fast second click can compute its step
+        // from a mid-animation position and jump somewhere unrelated.
+        if (!isArrowScrolling) { syncStepIndex(); }
         stepIndex = Math.max(0, Math.min(cards.length - 1, stepIndex + dir));
         var max = track.scrollWidth - track.clientWidth;
         var target = Math.max(0, Math.min(max, stepIndex * stepSize()));
+        isArrowScrolling = true;
         track.scrollTo({ left: target, behavior: 'smooth' });
       }
 
@@ -445,6 +453,7 @@
         scrollTimer = window.setTimeout(function () {
           updateArrowState();
           syncStepIndex();
+          isArrowScrolling = false;
         }, 100);
       });
 
