@@ -401,12 +401,26 @@
       }
 
       var stepIndex = 0;
+      var wheelTarget = null;
+      var wheelRaf = null;
+      var wheelSettleTimer = null;
+
+      function cancelWheelEase() {
+        if (wheelRaf) {
+          window.cancelAnimationFrame(wheelRaf);
+          wheelRaf = null;
+        }
+        wheelTarget = null;
+        window.clearTimeout(wheelSettleTimer);
+        track.classList.remove('is-easing');
+      }
 
       function syncStepIndex() {
         stepIndex = Math.round(track.scrollLeft / stepSize());
       }
 
       function scrollByStep(dir) {
+        cancelWheelEase();
         syncStepIndex();
         stepIndex = Math.max(0, Math.min(cards.length - 1, stepIndex + dir));
         var max = track.scrollWidth - track.clientWidth;
@@ -458,10 +472,6 @@
         selectCard(e.target);
       });
 
-      var wheelTarget = null;
-      var wheelRaf = null;
-      var wheelSettleTimer = null;
-
       function easeWheelStep() {
         var diff = wheelTarget - track.scrollLeft;
         if (Math.abs(diff) < 0.5) {
@@ -495,6 +505,7 @@
 
       track.addEventListener('pointerdown', function (e) {
         if (e.pointerType !== 'mouse') { return; }
+        cancelWheelEase();
         isPointerDown = true;
         dragMoved = false;
         startX = e.clientX;
