@@ -136,27 +136,6 @@ SEED_PLANS = [
         "8 vCPU, 16 GB RAM, 160 GB NVMe",
         "699 ₽/мес",
     ),
-    (
-        "VPN-серверы",
-        "Стандарт",
-        "Для одного устройства, лёгкое использование.",
-        "1 vCPU, 1 GB RAM, 10 GB NVMe",
-        "249 ₽/мес",
-    ),
-    (
-        "VPN-серверы",
-        "Стандарт+",
-        "Для нескольких устройств, стабильное соединение.",
-        "2 vCPU, 2 GB RAM, 20 GB NVMe",
-        "499 ₽/мес",
-    ),
-    (
-        "VPN-серверы",
-        "Max",
-        "Для команды или высокой нагрузки.",
-        "4 vCPU, 4 GB RAM, 40 GB NVMe",
-        "699 ₽/мес",
-    ),
 ]
 
 
@@ -171,6 +150,9 @@ def init_db():
             SEED_PLANS,
         )
         db.commit()
+
+    db.execute("UPDATE plans SET is_active = 0 WHERE category = 'VPN-серверы'")
+    db.commit()
 
 
 @click.command("init-db")
