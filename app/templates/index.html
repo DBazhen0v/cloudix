@@ -62,52 +62,63 @@
 
 <section class="plans" id="plans">
   <h2 class="section-title">Тарифы</h2>
+  <div class="plans-tabs" role="tablist">
+    {% for category, category_plans in plan_groups.items() %}
+    <button
+      type="button"
+      class="plans-tab {% if loop.first %}active{% endif %}"
+      data-category-index="{{ loop.index0 }}"
+      role="tab"
+      aria-selected="{{ 'true' if loop.first else 'false' }}"
+    >
+      {% if category == 'Серверы для ботов и скриптов' %}{{ icon_bot(28) }}
+      {% elif category == 'Веб-хостинг' %}{{ icon_globe(28) }}
+      {% elif category == 'Minecraft-сервера' %}{{ icon_cube(28) }}
+      {% endif %}
+      <span>{{ category }}</span>
+    </button>
+    {% endfor %}
+  </div>
   {% for category, category_plans in plan_groups.items() %}
-  <h3 class="plans-category-title">
-    {% if category == 'Серверы для ботов и скриптов' %}{{ icon_bot(32) }}
-    {% elif category == 'Веб-хостинг' %}{{ icon_globe(32) }}
-    {% elif category == 'Minecraft-сервера' %}{{ icon_cube(32) }}
-    {% endif %}
-    {{ category }}
-  </h3>
-  <div class="plans-carousel">
-    <button type="button" class="carousel-arrow carousel-arrow-prev" data-dir="-1" aria-label="Предыдущий тариф">{{ icon_arrow_right(18) }}</button>
-    <div class="plans-grid" data-carousel>
-      {% for plan in category_plans %}
-      <article
-        class="plan-card {% if loop.index == 2 %}plan-card-featured{% endif %}"
-        data-index="{{ loop.index0 }}"
-        tabindex="0"
-        role="button"
-        aria-pressed="false"
-      >
-        {% if loop.index == 2 %}<span class="plan-badge">Популярный выбор</span>{% endif %}
-        <h4 class="plan-card-name">{{ plan["name"] }}</h4>
-        <p class="plan-card-price">{{ plan["price"] }}</p>
-        <ul class="plan-features">
-          {% for feature in plan["specs"].split(",") %}
-          <li>{{ feature.strip() }}</li>
-          {% endfor %}
-        </ul>
-        <button
-          type="button"
-          class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn"
-          data-plan-id="{{ plan['id'] }}"
-          data-plan-name="{{ plan['name'] }}"
-          data-plan-category="{{ plan['category'] }}"
-          data-plan-specs="{{ plan['specs'] }}"
-          data-plan-price="{{ plan['price'] }}"
+  <div class="plans-category {% if loop.first %}active{% endif %}" data-category-index="{{ loop.index0 }}" role="tabpanel">
+    <div class="plans-carousel">
+      <button type="button" class="carousel-arrow carousel-arrow-prev" data-dir="-1" aria-label="Предыдущий тариф">{{ icon_arrow_right(18) }}</button>
+      <div class="plans-grid" data-carousel>
+        {% for plan in category_plans %}
+        <article
+          class="plan-card {% if loop.index == 2 %}plan-card-featured{% endif %}"
+          data-index="{{ loop.index0 }}"
+          tabindex="0"
+          role="button"
+          aria-pressed="false"
         >
-          Выбрать тариф
-        </button>
-      </article>
-      {% endfor %}
-    </div>
-    <button type="button" class="carousel-arrow carousel-arrow-next" data-dir="1" aria-label="Следующий тариф">{{ icon_arrow_right(18) }}</button>
-    <div class="plans-dots" role="group" aria-label="Тарифы: {{ category }}">
-      {% for plan in category_plans %}
-      <button type="button" class="plans-dot {% if loop.index == 1 %}active{% endif %}" data-index="{{ loop.index0 }}" aria-label="Показать тариф «{{ plan['name'] }}»"></button>
-      {% endfor %}
+          <h4 class="plan-card-name">{{ plan["name"] }}</h4>
+          <p class="plan-card-price">{{ plan["price"] }}</p>
+          <ul class="plan-features">
+            {% for feature in plan["specs"].split(",") %}
+            <li>{{ feature.strip() }}</li>
+            {% endfor %}
+          </ul>
+          <button
+            type="button"
+            class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn"
+            data-plan-id="{{ plan['id'] }}"
+            data-plan-name="{{ plan['name'] }}"
+            data-plan-category="{{ plan['category'] }}"
+            data-plan-specs="{{ plan['specs'] }}"
+            data-plan-price="{{ plan['price'] }}"
+          >
+            Выбрать тариф
+          </button>
+        </article>
+        {% endfor %}
+      </div>
+      <button type="button" class="carousel-arrow carousel-arrow-next" data-dir="1" aria-label="Следующий тариф">{{ icon_arrow_right(18) }}</button>
+      <div class="plans-dots" role="group" aria-label="Тарифы: {{ category }}">
+        {% for plan in category_plans %}
+        <button type="button" class="plans-dot {% if loop.index == 1 %}active{% endif %}" data-index="{{ loop.index0 }}" aria-label="Показать тариф «{{ plan['name'] }}»"></button>
+        {% endfor %}
+      </div>
     </div>
   </div>
   {% endfor %}
@@ -358,6 +369,26 @@
   })();
 
   (function () {
+    var tabs = document.querySelectorAll('.plans-tab');
+    var panels = document.querySelectorAll('.plans-category');
+    if (!tabs.length) { return; }
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var index = tab.dataset.categoryIndex;
+        tabs.forEach(function (t) {
+          var active = t === tab;
+          t.classList.toggle('active', active);
+          t.setAttribute('aria-selected', String(active));
+        });
+        panels.forEach(function (p) {
+          p.classList.toggle('active', p.dataset.categoryIndex === index);
+        });
+      });
+    });
+  })();
+
+  (function () {
     document.querySelectorAll('.plans-carousel').forEach(function (wrap) {
       var track = wrap.querySelector('[data-carousel]');
       var dots = wrap.querySelectorAll('.plans-dot');
@@ -434,10 +465,28 @@
         selectCard(e.target);
       });
 
+      var wheelTarget = null;
+      var wheelRaf = null;
+
+      function easeWheelStep() {
+        var diff = wheelTarget - track.scrollLeft;
+        if (Math.abs(diff) < 0.5) {
+          track.scrollLeft = wheelTarget;
+          wheelRaf = null;
+          wheelTarget = null;
+          return;
+        }
+        track.scrollLeft += diff * 0.18;
+        wheelRaf = window.requestAnimationFrame(easeWheelStep);
+      }
+
       track.addEventListener('wheel', function (e) {
         if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) { return; }
         e.preventDefault();
-        track.scrollLeft += e.deltaY;
+        var max = track.scrollWidth - track.clientWidth;
+        if (wheelTarget === null) { wheelTarget = track.scrollLeft; }
+        wheelTarget = Math.max(0, Math.min(max, wheelTarget + e.deltaY));
+        if (!wheelRaf) { wheelRaf = window.requestAnimationFrame(easeWheelStep); }
       }, { passive: false });
 
       var isPointerDown = false;
