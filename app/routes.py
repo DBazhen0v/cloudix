@@ -93,6 +93,11 @@ def order():
     return redirect(url_for("cabinet.index"))
 
 
+@bp.route("/support")
+def support_page():
+    return render_template("support.html")
+
+
 @bp.route("/support", methods=["POST"])
 def support_message():
     check_csrf_token()

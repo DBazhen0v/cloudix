@@ -1239,6 +1239,68 @@ form select:focus {
   resize: vertical;
 }
 
+.support-panel-expand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.support-panel-expand:hover {
+  color: var(--accent);
+}
+
+/* Support page */
+
+.support-page {
+  padding-top: 4rem;
+}
+
+.support-page-inner {
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.support-page-inner h1 {
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  margin: 0 0 0.75rem;
+}
+
+.support-page-inner > p {
+  color: var(--muted);
+  margin: 0 0 2rem;
+}
+
+.support-page-form {
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+}
+
+.support-page-form button {
+  margin-top: 1.25rem;
+}
+
+.support-page-alt,
+.support-page-faq {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+.support-page-alt a,
+.support-page-faq a {
+  color: var(--accent);
+}
+
 /* Flash messages */
 
 .flash-list {

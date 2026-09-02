@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Поддержка — Cloudex{% endblock %}
+{% block meta_description %}Свяжитесь с поддержкой Cloudex — опишите вопрос, и мы ответим напрямую.{% endblock %}
+
+{% block content %}
+<section class="support-page">
+  <div class="support-page-inner">
+    <span class="eyebrow">ПОДДЕРЖКА</span>
+    <h1>Чем можем помочь?</h1>
+    <p>Опишите вопрос как можно подробнее — сообщение придёт нам напрямую, и мы ответим в ближайшее время.</p>
+
+    <form method="post" action="{{ url_for('shop.support_message') }}" class="support-page-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="next" value="{{ url_for('shop.support_page') }}">
+
+      {% if not user_logged_in %}
+      <label for="support-page-contact">Как с вами связаться</label>
+      <input type="text" id="support-page-contact" name="contact" placeholder="Email или Telegram для ответа" maxlength="200">
+      {% endif %}
+
+      <label for="support-page-message">Сообщение</label>
+      <textarea id="support-page-message" name="message" rows="6" placeholder="Опишите вопрос..." required maxlength="1000"></textarea>
+
+      <button type="submit" class="btn btn-large btn-full">Отправить сообщение</button>
+    </form>
+
+    {% if support_telegram_url or support_email %}
+    <p class="support-page-alt">
+      Или напишите напрямую:
+      {% if support_telegram_url %}<a href="{{ support_telegram_url }}" target="_blank" rel="noopener">Telegram</a>{% endif %}
+      {% if support_telegram_url and support_email %} · {% endif %}
+      {% if support_email %}<a href="mailto:{{ support_email }}">{{ support_email }}</a>{% endif %}
+    </p>
+    {% endif %}
+
+    <p class="support-page-faq">Возможно, ответ уже есть в <a href="{{ url_for('shop.index') }}#faq">разделе вопросов и ответов</a>.</p>
+  </div>
+</section>
+{% endblock %}
