@@ -71,51 +71,52 @@
       role="tab"
       aria-selected="{{ 'true' if loop.first else 'false' }}"
     >
-      {% if category == 'Серверы для ботов и скриптов' %}{{ icon_bot(28) }}
-      {% elif category == 'Веб-хостинг' %}{{ icon_globe(28) }}
-      {% elif category == 'Minecraft-сервера' %}{{ icon_cube(28) }}
+      {% if category == 'Серверы для ботов и скриптов' %}{{ icon_bot(34) }}
+      {% elif category == 'Веб-хостинг' %}{{ icon_globe(34) }}
+      {% elif category == 'Minecraft-сервера' %}{{ icon_cube(34) }}
       {% endif %}
       <span>{{ category }}</span>
     </button>
     {% endfor %}
   </div>
-  <div class="plans-carousel">
-    <button type="button" class="carousel-arrow carousel-arrow-prev" data-dir="-1" aria-label="Предыдущий тариф">{{ icon_arrow_right(18) }}</button>
-    <div class="plans-grid" data-carousel>
-      {% for category, category_plans in plan_groups.items() %}
-      {% set cat_index = loop.index0 %}
-      {% for plan in category_plans %}
-      <article
-        class="plan-card {% if loop.index == 2 %}plan-card-featured{% endif %}"
-        data-category-index="{{ cat_index }}"
-        tabindex="0"
-        role="button"
-        aria-pressed="false"
-      >
-        <h4 class="plan-card-name">{{ plan["name"] }}</h4>
-        <p class="plan-card-price">{{ plan["price"] }}</p>
-        <ul class="plan-features">
-          {% for feature in plan["specs"].split(",") %}
-          <li>{{ feature.strip() }}</li>
-          {% endfor %}
-        </ul>
-        <button
-          type="button"
-          class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn"
-          data-plan-id="{{ plan['id'] }}"
-          data-plan-name="{{ plan['name'] }}"
-          data-plan-category="{{ plan['category'] }}"
-          data-plan-specs="{{ plan['specs'] }}"
-          data-plan-price="{{ plan['price'] }}"
+  {% for category, category_plans in plan_groups.items() %}
+  {% set featured_idx = (category_plans|length / 2)|round(0, 'ceil')|int %}
+  <div class="plans-category {% if loop.first %}active{% endif %}" data-category-index="{{ loop.index0 }}" role="tabpanel">
+    <div class="plans-carousel">
+      <button type="button" class="carousel-arrow carousel-arrow-prev" data-dir="-1" aria-label="Предыдущий тариф">{{ icon_arrow_right(18) }}</button>
+      <div class="plans-grid" data-carousel>
+        {% for plan in category_plans %}
+        <article
+          class="plan-card {% if loop.index == featured_idx %}plan-card-featured{% endif %}"
+          tabindex="0"
+          role="button"
+          aria-pressed="false"
         >
-          Выбрать тариф
-        </button>
-      </article>
-      {% endfor %}
-      {% endfor %}
+          <h4 class="plan-card-name">{{ plan["name"] }}</h4>
+          <p class="plan-card-price">{{ plan["price"] }}</p>
+          <ul class="plan-features">
+            {% for feature in plan["specs"].split(",") %}
+            <li>{{ feature.strip() }}</li>
+            {% endfor %}
+          </ul>
+          <button
+            type="button"
+            class="btn {% if loop.index != featured_idx %}btn-secondary{% endif %} btn-full order-btn"
+            data-plan-id="{{ plan['id'] }}"
+            data-plan-name="{{ plan['name'] }}"
+            data-plan-category="{{ plan['category'] }}"
+            data-plan-specs="{{ plan['specs'] }}"
+            data-plan-price="{{ plan['price'] }}"
+          >
+            Выбрать тариф
+          </button>
+        </article>
+        {% endfor %}
+      </div>
+      <button type="button" class="carousel-arrow carousel-arrow-next" data-dir="1" aria-label="Следующий тариф">{{ icon_arrow_right(18) }}</button>
     </div>
-    <button type="button" class="carousel-arrow carousel-arrow-next" data-dir="1" aria-label="Следующий тариф">{{ icon_arrow_right(18) }}</button>
   </div>
+  {% endfor %}
 </section>
 
 <section class="faq" id="faq">
@@ -363,47 +364,22 @@
   })();
 
   (function () {
-    var track = document.querySelector('.plans-grid');
     var tabs = document.querySelectorAll('.plans-tab');
-    if (!track || !tabs.length) { return; }
-    var cards = track.querySelectorAll('.plan-card');
-
-    function setActiveTab(index) {
-      tabs.forEach(function (t) {
-        var active = Number(t.dataset.categoryIndex) === index;
-        t.classList.toggle('active', active);
-        t.setAttribute('aria-selected', String(active));
-      });
-    }
+    var panels = document.querySelectorAll('.plans-category');
+    if (!tabs.length) { return; }
 
     tabs.forEach(function (tab) {
       tab.addEventListener('click', function () {
-        var index = Number(tab.dataset.categoryIndex);
-        var firstCard = track.querySelector('.plan-card[data-category-index="' + index + '"]');
-        if (firstCard) { firstCard.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' }); }
-        setActiveTab(index);
+        var index = tab.dataset.categoryIndex;
+        tabs.forEach(function (t) {
+          var active = t === tab;
+          t.classList.toggle('active', active);
+          t.setAttribute('aria-selected', String(active));
+        });
+        panels.forEach(function (p) {
+          p.classList.toggle('active', p.dataset.categoryIndex === index);
+        });
       });
-    });
-
-    function syncActiveTabToScroll() {
-      var trackCenter = track.scrollLeft + track.clientWidth / 2;
-      var closestCard = null;
-      var closestDistance = Infinity;
-      cards.forEach(function (card) {
-        var cardCenter = card.offsetLeft + card.offsetWidth / 2;
-        var distance = Math.abs(cardCenter - trackCenter);
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestCard = card;
-        }
-      });
-      if (closestCard) { setActiveTab(Number(closestCard.dataset.categoryIndex)); }
-    }
-
-    var tabScrollTimer = null;
-    track.addEventListener('scroll', function () {
-      window.clearTimeout(tabScrollTimer);
-      tabScrollTimer = window.setTimeout(syncActiveTabToScroll, 100);
     });
   })();
 

@@ -96,24 +96,45 @@ SEED_PLANS = [
     ),
     (
         "Веб-хостинг",
-        "Стандарт",
-        "Для одного сайта-визитки.",
-        "1 vCPU, 2 GB RAM, 20 GB NVMe",
-        "249 ₽/мес",
+        "Web Start",
+        "Подойдёт для портфолио или лендинга.",
+        "0.9 vCPU, 300 MB RAM, 2 GB SSD NVMe, 1 поддомен, Базы данных MySQL, SSL-сертификат Let's Encrypt, Управление через Telegram-бота, Защита от DDoS, Бэкапы: 1 шт.",
+        "29 ₽/мес",
     ),
     (
         "Веб-хостинг",
-        "Стандарт+",
-        "Для сайта с базой данных и умеренной посещаемостью.",
-        "2 vCPU, 4 GB RAM, 40 GB NVMe",
-        "499 ₽/мес",
+        "Web Pro",
+        "Подойдёт для блогов, визиток и простых интернет-магазинов.",
+        "0.9 vCPU, 300 MB RAM, 5 GB SSD NVMe, 1 поддомен, Базы данных MySQL, SSL-сертификат Let's Encrypt, Управление через Telegram-бота, Защита от DDoS, Бэкапы: 3 шт.",
+        "39 ₽/мес",
     ),
     (
         "Веб-хостинг",
-        "Max",
-        "Для нескольких проектов или высоконагруженного сайта.",
-        "4 vCPU, 8 GB RAM, 80 GB NVMe",
-        "699 ₽/мес",
+        "Web Premium",
+        "Отличный выбор для агентств и бизнеса.",
+        "0.9 vCPU, 400 MB RAM, 10 GB SSD NVMe, 1 поддомен, Базы данных MySQL, SSL-сертификат Let's Encrypt, Управление через Telegram-бота, Защита от DDoS, Бэкапы: 5 шт.",
+        "69 ₽/мес",
+    ),
+    (
+        "Веб-хостинг",
+        "Web Boost",
+        "Ускоренный хостинг для растущих проектов.",
+        "Безлимит vCPU, 1024 MB RAM, 15 GB SSD NVMe, 5 поддоменов, Базы данных MySQL, SSL-сертификат Let's Encrypt, Управление через Telegram-бота, Защита от DDoS, Бэкапы: 1 шт.",
+        "99 ₽/мес",
+    ),
+    (
+        "Веб-хостинг",
+        "Web Business",
+        "Хостинг для малого бизнеса.",
+        "Безлимит vCPU, 1024 MB RAM, 20 GB SSD NVMe, 10 поддоменов, Базы данных MySQL, SSL-сертификат Let's Encrypt, Управление через Telegram-бота, Защита от DDoS, Бэкапы: 3 шт.",
+        "129 ₽/мес",
+    ),
+    (
+        "Веб-хостинг",
+        "Web Enterprise",
+        "Премиум-хостинг с высокой надёжностью.",
+        "Безлимит vCPU, 1024 MB RAM, 30 GB SSD NVMe, 10 поддоменов, Базы данных MySQL, SSL-сертификат Let's Encrypt, Управление через Telegram-бота, Защита от DDoS, Бэкапы: 5 шт., Приоритетная поддержка",
+        "179 ₽/мес",
     ),
     (
         "Minecraft-сервера",
@@ -152,6 +173,28 @@ def init_db():
         db.commit()
 
     db.execute("UPDATE plans SET is_active = 0 WHERE category = 'VPN-серверы'")
+
+    current_web_names = [p[1] for p in SEED_PLANS if p[0] == "Веб-хостинг"]
+    placeholders = ", ".join("?" for _ in current_web_names)
+    db.execute(
+        f"UPDATE plans SET is_active = 0 WHERE category = 'Веб-хостинг' AND name NOT IN ({placeholders})",
+        current_web_names,
+    )
+    existing_web_names = {
+        row["name"]
+        for row in db.execute(
+            "SELECT name FROM plans WHERE category = 'Веб-хостинг'"
+        ).fetchall()
+    }
+    missing_web_plans = [
+        p for p in SEED_PLANS if p[0] == "Веб-хостинг" and p[1] not in existing_web_names
+    ]
+    if missing_web_plans:
+        db.executemany(
+            "INSERT INTO plans (category, name, description, specs, price) VALUES (?, ?, ?, ?, ?)",
+            missing_web_plans,
+        )
+
     db.commit()
 
 

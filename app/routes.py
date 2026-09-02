@@ -1,3 +1,5 @@
+import re
+
 from flask import (
     Blueprint,
     current_app,
@@ -10,11 +12,22 @@ from flask import (
 )
 from werkzeug.security import check_password_hash
 
-from .constants import PAYMENT_METHODS
+from .constants import PAYMENT_METHODS, PLAN_CATEGORY_ORDER
 from .db import get_db
 from .security import admin_login_required, check_csrf_token, get_csrf_token
 
 bp = Blueprint("shop", __name__)
+
+
+def _plan_price_value(plan):
+    match = re.match(r"\d+", plan["price"])
+    return int(match.group()) if match else 0
+
+
+def _category_sort_key(category):
+    if category in PLAN_CATEGORY_ORDER:
+        return (0, PLAN_CATEGORY_ORDER.index(category))
+    return (1, category)
 
 
 @bp.app_context_processor
@@ -32,9 +45,13 @@ def index():
     db = get_db()
     plans = db.execute("SELECT * FROM plans WHERE is_active = 1 ORDER BY id").fetchall()
 
-    plan_groups = {}
+    unordered_groups = {}
     for plan in plans:
-        plan_groups.setdefault(plan["category"], []).append(plan)
+        unordered_groups.setdefault(plan["category"], []).append(plan)
+
+    plan_groups = {}
+    for category in sorted(unordered_groups, key=_category_sort_key):
+        plan_groups[category] = sorted(unordered_groups[category], key=_plan_price_value)
 
     return render_template(
         "index.html",
