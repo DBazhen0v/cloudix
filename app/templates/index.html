@@ -80,14 +80,13 @@
     {% endfor %}
   </div>
   {% for category, category_plans in plan_groups.items() %}
-  {% set featured_idx = (category_plans|length / 2)|round(0, 'ceil')|int %}
   <div class="plans-category {% if loop.first %}active{% endif %}" data-category-index="{{ loop.index0 }}" role="tabpanel">
     <div class="plans-carousel">
       <button type="button" class="carousel-arrow carousel-arrow-prev" data-dir="-1" aria-label="Предыдущий тариф">{{ icon_arrow_right(18) }}</button>
       <div class="plans-grid" data-carousel>
         {% for plan in category_plans %}
         <article
-          class="plan-card {% if loop.index == featured_idx %}plan-card-featured{% endif %}"
+          class="plan-card"
           tabindex="0"
           role="button"
           aria-pressed="false"
@@ -101,7 +100,7 @@
           </ul>
           <button
             type="button"
-            class="btn {% if loop.index != featured_idx %}btn-secondary{% endif %} btn-full order-btn"
+            class="btn btn-secondary btn-full order-btn"
             data-plan-id="{{ plan['id'] }}"
             data-plan-name="{{ plan['name'] }}"
             data-plan-category="{{ plan['category'] }}"
@@ -396,29 +395,27 @@
       var nextBtn = wrap.querySelector('.carousel-arrow-next');
       if (!cards.length) { return; }
 
-      function scrollToIndex(index) {
-        var clamped = Math.max(0, Math.min(cards.length - 1, index));
-        var card = cards[clamped];
-        if (card) { card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }
+      function stepSize() {
+        if (cards.length > 1) { return cards[1].offsetLeft - cards[0].offsetLeft; }
+        return cards[0].offsetWidth;
       }
 
-      function currentIndex() {
-        var trackCenter = track.scrollLeft + track.clientWidth / 2;
-        var closestIndex = 0;
-        var closestDistance = Infinity;
-        cards.forEach(function (card, i) {
-          var cardCenter = card.offsetLeft + card.offsetWidth / 2;
-          var distance = Math.abs(cardCenter - trackCenter);
-          if (distance < closestDistance) {
-            closestDistance = distance;
-            closestIndex = i;
-          }
-        });
-        return closestIndex;
+      var stepIndex = 0;
+
+      function syncStepIndex() {
+        stepIndex = Math.round(track.scrollLeft / stepSize());
       }
 
-      if (prevBtn) { prevBtn.addEventListener('click', function () { scrollToIndex(currentIndex() - 1); }); }
-      if (nextBtn) { nextBtn.addEventListener('click', function () { scrollToIndex(currentIndex() + 1); }); }
+      function scrollByStep(dir) {
+        syncStepIndex();
+        stepIndex = Math.max(0, Math.min(cards.length - 1, stepIndex + dir));
+        var max = track.scrollWidth - track.clientWidth;
+        var target = Math.max(0, Math.min(max, stepIndex * stepSize()));
+        track.scrollTo({ left: target, behavior: 'smooth' });
+      }
+
+      if (prevBtn) { prevBtn.addEventListener('click', function () { scrollByStep(-1); }); }
+      if (nextBtn) { nextBtn.addEventListener('click', function () { scrollByStep(1); }); }
 
       function updateArrowState() {
         var max = track.scrollWidth - track.clientWidth;
@@ -431,7 +428,10 @@
       var scrollTimer = null;
       track.addEventListener('scroll', function () {
         window.clearTimeout(scrollTimer);
-        scrollTimer = window.setTimeout(updateArrowState, 100);
+        scrollTimer = window.setTimeout(function () {
+          updateArrowState();
+          syncStepIndex();
+        }, 100);
       });
 
       updateArrowState();
