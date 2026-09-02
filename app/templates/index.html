@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_icons.html" import icon_bolt, icon_shield, icon_wrench, icon_headset, icon_disk, icon_bot, icon_globe, icon_api, icon_layers, icon_cube, icon_check_circle, icon_card, icon_crypto, icon_transfer, icon_arrow_right, icon_close, icon_chevron_down %}
+{% from "_icons.html" import icon_bolt, icon_shield, icon_wrench, icon_headset, icon_disk, icon_bot, icon_globe, icon_api, icon_layers, icon_cube, icon_check_circle, icon_card, icon_crypto, icon_transfer, icon_arrow_right, icon_close %}
 
 {% block title %}Cloudex — серверы под ключ{% endblock %}
 
@@ -75,38 +75,32 @@
     <button type="button" class="carousel-arrow carousel-arrow-prev" data-dir="-1" aria-label="Предыдущий тариф">{{ icon_arrow_right(18) }}</button>
     <div class="plans-grid" data-carousel>
       {% for plan in category_plans %}
-      <article class="plan-card {% if loop.index == 2 %}plan-card-featured{% endif %}" data-index="{{ loop.index0 }}">
+      <article
+        class="plan-card {% if loop.index == 2 %}plan-card-featured{% endif %}"
+        data-index="{{ loop.index0 }}"
+        tabindex="0"
+        role="button"
+        aria-pressed="false"
+      >
         {% if loop.index == 2 %}<span class="plan-badge">Популярный выбор</span>{% endif %}
-        <h4 class="plan-card-heading">
-          <button type="button" class="plan-card-toggle" aria-expanded="false">
-            <span class="plan-card-toggle-text">
-              <span class="plan-card-name">{{ plan["name"] }}</span>
-              <span class="plan-card-price">{{ plan["price"] }}</span>
-            </span>
-            <span class="plan-card-chevron" aria-hidden="true">{{ icon_chevron_down(16) }}</span>
-          </button>
-        </h4>
-        <div class="plan-card-details" hidden>
-          <div class="plan-card-details-inner">
-            <p class="plan-desc">{{ plan["description"] }}</p>
-            <ul class="plan-features">
-              {% for feature in plan["specs"].split(",") %}
-              <li>{{ feature.strip() }}</li>
-              {% endfor %}
-            </ul>
-            <button
-              type="button"
-              class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn"
-              data-plan-id="{{ plan['id'] }}"
-              data-plan-name="{{ plan['name'] }}"
-              data-plan-category="{{ plan['category'] }}"
-              data-plan-specs="{{ plan['specs'] }}"
-              data-plan-price="{{ plan['price'] }}"
-            >
-              Выбрать тариф
-            </button>
-          </div>
-        </div>
+        <h4 class="plan-card-name">{{ plan["name"] }}</h4>
+        <p class="plan-card-price">{{ plan["price"] }}</p>
+        <ul class="plan-features">
+          {% for feature in plan["specs"].split(",") %}
+          <li>{{ feature.strip() }}</li>
+          {% endfor %}
+        </ul>
+        <button
+          type="button"
+          class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn"
+          data-plan-id="{{ plan['id'] }}"
+          data-plan-name="{{ plan['name'] }}"
+          data-plan-category="{{ plan['category'] }}"
+          data-plan-specs="{{ plan['specs'] }}"
+          data-plan-price="{{ plan['price'] }}"
+        >
+          Выбрать тариф
+        </button>
       </article>
       {% endfor %}
     </div>
@@ -362,13 +356,6 @@
       });
     });
 
-    document.querySelectorAll('.plan-card-toggle').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var details = btn.closest('.plan-card').querySelector('.plan-card-details');
-        var open = btn.getAttribute('aria-expanded') === 'true';
-        setExpanded(btn, details, !open);
-      });
-    });
   })();
 
   (function () {
@@ -426,6 +413,63 @@
 
       updateActiveDot();
       window.setTimeout(updateActiveDot, 400);
+
+      function selectCard(card) {
+        cards.forEach(function (c) {
+          var isThis = c === card;
+          c.classList.toggle('is-selected', isThis);
+          c.setAttribute('aria-pressed', String(isThis));
+        });
+      }
+
+      track.addEventListener('click', function (e) {
+        if (dragMoved) { dragMoved = false; return; }
+        var card = e.target.closest('.plan-card');
+        if (card) { selectCard(card); }
+      });
+
+      track.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ') { return; }
+        if (e.target.className.indexOf('plan-card') === -1) { return; }
+        e.preventDefault();
+        selectCard(e.target);
+      });
+
+      track.addEventListener('wheel', function (e) {
+        if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) { return; }
+        e.preventDefault();
+        track.scrollLeft += e.deltaY;
+      }, { passive: false });
+
+      var isPointerDown = false;
+      var dragMoved = false;
+      var startX = 0;
+      var startScrollLeft = 0;
+
+      track.addEventListener('pointerdown', function (e) {
+        if (e.pointerType !== 'mouse') { return; }
+        isPointerDown = true;
+        dragMoved = false;
+        startX = e.clientX;
+        startScrollLeft = track.scrollLeft;
+        track.classList.add('is-dragging');
+      });
+
+      track.addEventListener('pointermove', function (e) {
+        if (!isPointerDown) { return; }
+        var dx = e.clientX - startX;
+        if (Math.abs(dx) > 4) { dragMoved = true; }
+        track.scrollLeft = startScrollLeft - dx;
+      });
+
+      function endDrag() {
+        if (!isPointerDown) { return; }
+        isPointerDown = false;
+        track.classList.remove('is-dragging');
+      }
+      track.addEventListener('pointerup', endDrag);
+      track.addEventListener('pointerleave', endDrag);
+      track.addEventListener('pointercancel', endDrag);
     });
   })();
 </script>
