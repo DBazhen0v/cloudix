@@ -25,9 +25,9 @@
 
       {% block nav %}
       <nav class="site-nav" aria-label="Основная навигация">
+        <a href="{{ url_for('shop.index') }}#how">Как это работает</a>
         <a href="{{ url_for('shop.index') }}#use-cases">Серверы</a>
         <a href="{{ url_for('shop.index') }}#plans">Тарифы</a>
-        <a href="{{ url_for('shop.index') }}#how">Как это работает</a>
         <a href="{{ url_for('shop.index') }}#faq">FAQ</a>
       </nav>
 
@@ -56,9 +56,9 @@
   {% block mobile_menu %}
   <div class="mobile-menu" id="mobile-menu" hidden>
     <nav aria-label="Мобильная навигация">
+      <a href="{{ url_for('shop.index') }}#how">Как это работает</a>
       <a href="{{ url_for('shop.index') }}#use-cases">Серверы</a>
       <a href="{{ url_for('shop.index') }}#plans">Тарифы</a>
-      <a href="{{ url_for('shop.index') }}#how">Как это работает</a>
       <a href="{{ url_for('shop.index') }}#faq">FAQ</a>
     </nav>
     <div class="mobile-menu-actions">
@@ -103,9 +103,9 @@
 
       <div class="footer-col">
         <h2>Сервис</h2>
+        <a href="{{ url_for('shop.index') }}#how">Как это работает</a>
         <a href="{{ url_for('shop.index') }}#use-cases">Серверы</a>
         <a href="{{ url_for('shop.index') }}#plans">Тарифы</a>
-        <a href="{{ url_for('shop.index') }}#how">Как это работает</a>
         <a href="{{ url_for('shop.index') }}#faq">FAQ</a>
       </div>
 
