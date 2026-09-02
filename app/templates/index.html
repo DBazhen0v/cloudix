@@ -79,49 +79,43 @@
     </button>
     {% endfor %}
   </div>
-  {% for category, category_plans in plan_groups.items() %}
-  <div class="plans-category {% if loop.first %}active{% endif %}" data-category-index="{{ loop.index0 }}" role="tabpanel">
-    <div class="plans-carousel">
-      <button type="button" class="carousel-arrow carousel-arrow-prev" data-dir="-1" aria-label="Предыдущий тариф">{{ icon_arrow_right(18) }}</button>
-      <div class="plans-grid" data-carousel>
-        {% for plan in category_plans %}
-        <article
-          class="plan-card {% if loop.index == 2 %}plan-card-featured{% endif %}"
-          data-index="{{ loop.index0 }}"
-          tabindex="0"
-          role="button"
-          aria-pressed="false"
+  <div class="plans-carousel">
+    <button type="button" class="carousel-arrow carousel-arrow-prev" data-dir="-1" aria-label="Предыдущий тариф">{{ icon_arrow_right(18) }}</button>
+    <div class="plans-grid" data-carousel>
+      {% for category, category_plans in plan_groups.items() %}
+      {% set cat_index = loop.index0 %}
+      {% for plan in category_plans %}
+      <article
+        class="plan-card {% if loop.index == 2 %}plan-card-featured{% endif %}"
+        data-category-index="{{ cat_index }}"
+        tabindex="0"
+        role="button"
+        aria-pressed="false"
+      >
+        <h4 class="plan-card-name">{{ plan["name"] }}</h4>
+        <p class="plan-card-price">{{ plan["price"] }}</p>
+        <ul class="plan-features">
+          {% for feature in plan["specs"].split(",") %}
+          <li>{{ feature.strip() }}</li>
+          {% endfor %}
+        </ul>
+        <button
+          type="button"
+          class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn"
+          data-plan-id="{{ plan['id'] }}"
+          data-plan-name="{{ plan['name'] }}"
+          data-plan-category="{{ plan['category'] }}"
+          data-plan-specs="{{ plan['specs'] }}"
+          data-plan-price="{{ plan['price'] }}"
         >
-          <h4 class="plan-card-name">{{ plan["name"] }}</h4>
-          <p class="plan-card-price">{{ plan["price"] }}</p>
-          <ul class="plan-features">
-            {% for feature in plan["specs"].split(",") %}
-            <li>{{ feature.strip() }}</li>
-            {% endfor %}
-          </ul>
-          <button
-            type="button"
-            class="btn {% if loop.index != 2 %}btn-secondary{% endif %} btn-full order-btn"
-            data-plan-id="{{ plan['id'] }}"
-            data-plan-name="{{ plan['name'] }}"
-            data-plan-category="{{ plan['category'] }}"
-            data-plan-specs="{{ plan['specs'] }}"
-            data-plan-price="{{ plan['price'] }}"
-          >
-            Выбрать тариф
-          </button>
-        </article>
-        {% endfor %}
-      </div>
-      <button type="button" class="carousel-arrow carousel-arrow-next" data-dir="1" aria-label="Следующий тариф">{{ icon_arrow_right(18) }}</button>
-      <div class="plans-dots" role="group" aria-label="Тарифы: {{ category }}">
-        {% for plan in category_plans %}
-        <button type="button" class="plans-dot {% if loop.index == 1 %}active{% endif %}" data-index="{{ loop.index0 }}" aria-label="Показать тариф «{{ plan['name'] }}»"></button>
-        {% endfor %}
-      </div>
+          Выбрать тариф
+        </button>
+      </article>
+      {% endfor %}
+      {% endfor %}
     </div>
+    <button type="button" class="carousel-arrow carousel-arrow-next" data-dir="1" aria-label="Следующий тариф">{{ icon_arrow_right(18) }}</button>
   </div>
-  {% endfor %}
 </section>
 
 <section class="faq" id="faq">
@@ -369,37 +363,61 @@
   })();
 
   (function () {
+    var track = document.querySelector('.plans-grid');
     var tabs = document.querySelectorAll('.plans-tab');
-    var panels = document.querySelectorAll('.plans-category');
-    if (!tabs.length) { return; }
+    if (!track || !tabs.length) { return; }
+    var cards = track.querySelectorAll('.plan-card');
+
+    function setActiveTab(index) {
+      tabs.forEach(function (t) {
+        var active = Number(t.dataset.categoryIndex) === index;
+        t.classList.toggle('active', active);
+        t.setAttribute('aria-selected', String(active));
+      });
+    }
 
     tabs.forEach(function (tab) {
       tab.addEventListener('click', function () {
-        var index = tab.dataset.categoryIndex;
-        tabs.forEach(function (t) {
-          var active = t === tab;
-          t.classList.toggle('active', active);
-          t.setAttribute('aria-selected', String(active));
-        });
-        panels.forEach(function (p) {
-          p.classList.toggle('active', p.dataset.categoryIndex === index);
-        });
+        var index = Number(tab.dataset.categoryIndex);
+        var firstCard = track.querySelector('.plan-card[data-category-index="' + index + '"]');
+        if (firstCard) { firstCard.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' }); }
+        setActiveTab(index);
       });
+    });
+
+    function syncActiveTabToScroll() {
+      var trackCenter = track.scrollLeft + track.clientWidth / 2;
+      var closestCard = null;
+      var closestDistance = Infinity;
+      cards.forEach(function (card) {
+        var cardCenter = card.offsetLeft + card.offsetWidth / 2;
+        var distance = Math.abs(cardCenter - trackCenter);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestCard = card;
+        }
+      });
+      if (closestCard) { setActiveTab(Number(closestCard.dataset.categoryIndex)); }
+    }
+
+    var tabScrollTimer = null;
+    track.addEventListener('scroll', function () {
+      window.clearTimeout(tabScrollTimer);
+      tabScrollTimer = window.setTimeout(syncActiveTabToScroll, 100);
     });
   })();
 
   (function () {
     document.querySelectorAll('.plans-carousel').forEach(function (wrap) {
       var track = wrap.querySelector('[data-carousel]');
-      var dots = wrap.querySelectorAll('.plans-dot');
       var cards = track.querySelectorAll('.plan-card');
       var prevBtn = wrap.querySelector('.carousel-arrow-prev');
       var nextBtn = wrap.querySelector('.carousel-arrow-next');
-      if (!dots.length || !cards.length) { return; }
+      if (!cards.length) { return; }
 
       function scrollToIndex(index) {
         var clamped = Math.max(0, Math.min(cards.length - 1, index));
-        var card = track.querySelector('.plan-card[data-index="' + clamped + '"]');
+        var card = cards[clamped];
         if (card) { card.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }
       }
 
@@ -418,31 +436,23 @@
         return closestIndex;
       }
 
-      wrap.addEventListener('click', function (e) {
-        var dot = e.target.closest('.plans-dot');
-        if (dot) { scrollToIndex(Number(dot.dataset.index)); }
-      });
-
       if (prevBtn) { prevBtn.addEventListener('click', function () { scrollToIndex(currentIndex() - 1); }); }
       if (nextBtn) { nextBtn.addEventListener('click', function () { scrollToIndex(currentIndex() + 1); }); }
 
-      function updateActiveDot() {
-        var closestIndex = currentIndex();
-        dots.forEach(function (dot, i) {
-          dot.classList.toggle('active', i === closestIndex);
-        });
-        if (prevBtn) { prevBtn.disabled = closestIndex === 0; }
-        if (nextBtn) { nextBtn.disabled = closestIndex === cards.length - 1; }
+      function updateArrowState() {
+        var max = track.scrollWidth - track.clientWidth;
+        if (prevBtn) { prevBtn.disabled = track.scrollLeft <= 1; }
+        if (nextBtn) { nextBtn.disabled = track.scrollLeft >= max - 1; }
       }
 
       var scrollTimer = null;
       track.addEventListener('scroll', function () {
         window.clearTimeout(scrollTimer);
-        scrollTimer = window.setTimeout(updateActiveDot, 100);
+        scrollTimer = window.setTimeout(updateArrowState, 100);
       });
 
-      updateActiveDot();
-      window.setTimeout(updateActiveDot, 400);
+      updateArrowState();
+      window.setTimeout(updateArrowState, 400);
 
       function selectCard(card) {
         cards.forEach(function (c) {
@@ -467,6 +477,7 @@
 
       var wheelTarget = null;
       var wheelRaf = null;
+      var wheelSettleTimer = null;
 
       function easeWheelStep() {
         var diff = wheelTarget - track.scrollLeft;
@@ -474,15 +485,20 @@
           track.scrollLeft = wheelTarget;
           wheelRaf = null;
           wheelTarget = null;
+          wheelSettleTimer = window.setTimeout(function () {
+            track.classList.remove('is-easing');
+          }, 120);
           return;
         }
-        track.scrollLeft += diff * 0.18;
+        track.scrollLeft += diff * 0.15;
         wheelRaf = window.requestAnimationFrame(easeWheelStep);
       }
 
       track.addEventListener('wheel', function (e) {
         if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) { return; }
         e.preventDefault();
+        window.clearTimeout(wheelSettleTimer);
+        track.classList.add('is-easing');
         var max = track.scrollWidth - track.clientWidth;
         if (wheelTarget === null) { wheelTarget = track.scrollLeft; }
         wheelTarget = Math.max(0, Math.min(max, wheelTarget + e.deltaY));
