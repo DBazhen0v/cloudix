@@ -377,7 +377,12 @@
           t.setAttribute('aria-selected', String(active));
         });
         panels.forEach(function (p) {
-          p.classList.toggle('active', p.dataset.categoryIndex === index);
+          var active = p.dataset.categoryIndex === index;
+          p.classList.toggle('active', active);
+          if (active) {
+            var carousel = p.querySelector('.plans-carousel');
+            if (carousel && carousel.refreshArrows) { carousel.refreshArrows(); }
+          }
         });
       });
     });
@@ -420,6 +425,8 @@
         if (prevBtn) { prevBtn.disabled = track.scrollLeft <= 1; }
         if (nextBtn) { nextBtn.disabled = track.scrollLeft >= max - 1; }
       }
+
+      wrap.refreshArrows = updateArrowState;
 
       var scrollTimer = null;
       track.addEventListener('scroll', function () {

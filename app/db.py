@@ -75,24 +75,38 @@ CREATE TABLE IF NOT EXISTS support_messages (
 SEED_PLANS = [
     (
         "Серверы для ботов и скриптов",
-        "Стандарт",
-        "Для одного лёгкого бота или скрипта.",
-        "1 vCPU, 1 GB RAM, 10 GB NVMe",
-        "249 ₽/мес",
+        "Start",
+        "Отличный выбор для новичков и любителей.",
+        "200 MB RAM DDR3-DDR5, Безлимит vCPU @ 3.1-5.4 GHz, 3 GB SSD NVMe, Базы данных MySQL: 1, Управление через Telegram-бота, 1-10 Gbit/s Network, Бэкапы: 1 шт., Защита от DDoS",
+        "19 ₽/мес",
     ),
     (
         "Серверы для ботов и скриптов",
-        "Стандарт+",
-        "Несколько ботов или скрипт с базой данных.",
-        "2 vCPU, 2 GB RAM, 20 GB NVMe",
-        "499 ₽/мес",
+        "Pro",
+        "Оптимальный баланс мощности и цены.",
+        "400 MB RAM DDR3-DDR5, Безлимит vCPU @ 3.1-5.4 GHz, 6 GB SSD NVMe, Базы данных MySQL: 2, Управление через Telegram-бота, 1-10 Gbit/s Network, Бэкапы: 5 шт., Защита от DDoS",
+        "39 ₽/мес",
     ),
     (
         "Серверы для ботов и скриптов",
-        "Max",
-        "Много ботов и высоконагруженные скрипты.",
-        "4 vCPU, 4 GB RAM, 40 GB NVMe",
-        "699 ₽/мес",
+        "Premium",
+        "Максимальная производительность.",
+        "750 MB RAM DDR3-DDR5, Безлимит vCPU @ 3.1-5.4 GHz, 12 GB SSD NVMe, Базы данных MySQL: 3, Управление через Telegram-бота, 1-10 Gbit/s Network, Бэкапы: 5 шт., Приоритетная поддержка, Защита от DDoS",
+        "79 ₽/мес",
+    ),
+    (
+        "Серверы для ботов и скриптов",
+        "Ultra",
+        "Решение для требовательных пользователей.",
+        "1.5 GB RAM DDR3-DDR5, Безлимит vCPU @ 3.1-5.4 GHz, 15 GB SSD NVMe, Базы данных MySQL: 5, Управление через Telegram-бота, 1-10 Gbit/s Network, Бэкапы: 5 шт., Приоритетная поддержка, Защита от DDoS",
+        "119 ₽/мес",
+    ),
+    (
+        "Серверы для ботов и скриптов",
+        "Elite",
+        "Для профессионалов и бизнес-приложений.",
+        "2 GB RAM DDR3-DDR5, Безлимит vCPU @ 3.1-5.4 GHz, 17 GB SSD NVMe, Базы данных MySQL: 6, Управление через Telegram-бота, 1-10 Gbit/s Network, Бэкапы: 5 шт., Приоритетная поддержка, Защита от DDoS",
+        "159 ₽/мес",
     ),
     (
         "Веб-хостинг",
@@ -138,24 +152,38 @@ SEED_PLANS = [
     ),
     (
         "Minecraft-сервера",
-        "Стандарт",
-        "Небольшая группа игроков, ванильный сервер.",
-        "2 vCPU, 4 GB RAM, 40 GB NVMe",
-        "249 ₽/мес",
+        "MC Mini",
+        "Подойдёт для прокси-сервера.",
+        "1 GB RAM DDR4-DDR5, Безлимит vCPU @ 4.4-5.4 GHz, 5 GB SSD NVMe, Всего портов: 2, Управление через Telegram-бота, Бэкапы: 3 шт., Мощная DDoS защита",
+        "49 ₽/мес",
     ),
     (
         "Minecraft-сервера",
-        "Стандарт+",
-        "Активное сообщество, моды и плагины.",
-        "4 vCPU, 8 GB RAM, 80 GB NVMe",
-        "499 ₽/мес",
+        "MC Start",
+        "Подойдёт для маленького сервера с друзьями.",
+        "1.5 GB RAM DDR4-DDR5, Безлимит vCPU @ 4.4-5.4 GHz, 5 GB SSD NVMe, Всего портов: 2, Управление через Telegram-бота, Бэкапы: 5 шт., Мощная DDoS защита",
+        "59 ₽/мес",
     ),
     (
         "Minecraft-сервера",
-        "Max",
-        "Крупный проект с высокой нагрузкой.",
-        "8 vCPU, 16 GB RAM, 160 GB NVMe",
-        "699 ₽/мес",
+        "MC Standard",
+        "Для средних серверов с модами и игроками.",
+        "2 GB RAM DDR4-DDR5, Безлимит vCPU @ 4.4-5.4 GHz, 10 GB SSD NVMe, Всего портов: 4, Управление через Telegram-бота, Бэкапы: 5 шт., Мощная DDoS защита",
+        "99 ₽/мес",
+    ),
+    (
+        "Minecraft-сервера",
+        "MC Premium",
+        "Для серьёзных проектов и игровых сообществ.",
+        "4 GB RAM DDR4-DDR5, Безлимит vCPU @ 4.4-5.4 GHz с приоритетом, 20 GB SSD NVMe, Всего портов: 6, Управление через Telegram-бота, Бэкапы: 5 шт., Мощная DDoS защита",
+        "209 ₽/мес",
+    ),
+    (
+        "Minecraft-сервера",
+        "MC Ultra",
+        "Отличный выбор для мини-игр и мультисерверной инфраструктуры.",
+        "6 GB RAM DDR4-DDR5, Безлимит vCPU @ 4.4-5.4 GHz с высоким приоритетом, 30 GB SSD NVMe, Всего портов: 6, Управление через Telegram-бота, Бэкапы: 5 шт., Мощная DDoS защита",
+        "259 ₽/мес",
     ),
 ]
 
@@ -174,28 +202,34 @@ def init_db():
 
     db.execute("UPDATE plans SET is_active = 0 WHERE category = 'VPN-серверы'")
 
-    current_web_names = [p[1] for p in SEED_PLANS if p[0] == "Веб-хостинг"]
-    placeholders = ", ".join("?" for _ in current_web_names)
-    db.execute(
-        f"UPDATE plans SET is_active = 0 WHERE category = 'Веб-хостинг' AND name NOT IN ({placeholders})",
-        current_web_names,
-    )
-    existing_web_names = {
-        row["name"]
-        for row in db.execute(
-            "SELECT name FROM plans WHERE category = 'Веб-хостинг'"
-        ).fetchall()
-    }
-    missing_web_plans = [
-        p for p in SEED_PLANS if p[0] == "Веб-хостинг" and p[1] not in existing_web_names
-    ]
-    if missing_web_plans:
-        db.executemany(
-            "INSERT INTO plans (category, name, description, specs, price) VALUES (?, ?, ?, ?, ?)",
-            missing_web_plans,
-        )
+    seed_categories = {p[0] for p in SEED_PLANS}
+    for category in seed_categories:
+        _sync_category_plans(db, category)
 
     db.commit()
+
+
+def _sync_category_plans(db, category):
+    current_names = [p[1] for p in SEED_PLANS if p[0] == category]
+    placeholders = ", ".join("?" for _ in current_names)
+    db.execute(
+        f"UPDATE plans SET is_active = 0 WHERE category = ? AND name NOT IN ({placeholders})",
+        [category, *current_names],
+    )
+    existing_names = {
+        row["name"]
+        for row in db.execute(
+            "SELECT name FROM plans WHERE category = ?", [category]
+        ).fetchall()
+    }
+    missing_plans = [
+        p for p in SEED_PLANS if p[0] == category and p[1] not in existing_names
+    ]
+    if missing_plans:
+        db.executemany(
+            "INSERT INTO plans (category, name, description, specs, price) VALUES (?, ?, ?, ?, ?)",
+            missing_plans,
+        )
 
 
 @click.command("init-db")
