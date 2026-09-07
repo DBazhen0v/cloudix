@@ -312,7 +312,7 @@ section:last-of-type {
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    circle at 39% 50%,
+    circle at 45% 49%,
     transparent 0%,
     transparent 30%,
     rgba(8, 10, 22, 0.18) 65%,
