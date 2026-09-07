@@ -312,29 +312,19 @@ section:last-of-type {
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    circle at 46% 36%,
+    circle at 75% 36%,
     transparent 0%,
-    transparent 22%,
-    rgba(8, 10, 22, 0.35) 55%,
-    rgba(8, 10, 22, 0.72) 100%
+    transparent 26%,
+    rgba(8, 10, 22, 0.3) 60%,
+    rgba(8, 10, 22, 0.6) 100%
   );
   pointer-events: none;
 }
 
-.hero-network-mask {
+.hero-network-edge-fade {
   position: absolute;
-  left: calc(var(--nx) * 1%);
-  top: calc(var(--ny) * 1%);
-  transform: translate(-50%, -50%);
-  width: 30%;
-  height: 22%;
-  background: radial-gradient(
-    closest-side,
-    rgba(8, 10, 22, 0.97) 0%,
-    rgba(8, 10, 22, 0.97) 60%,
-    rgba(8, 10, 22, 0) 100%
-  );
-  filter: blur(2px);
+  inset: 0;
+  background: linear-gradient(90deg, transparent 82%, var(--bg) 100%);
   pointer-events: none;
 }
 
@@ -401,6 +391,27 @@ section:last-of-type {
     transform: scale(2.6);
     opacity: 0;
   }
+}
+
+.hero-network-node--dim {
+  width: 6px;
+  height: 6px;
+}
+
+.hero-network-node--dim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(184, 197, 255, 0.55);
+  box-shadow: 0 0 6px 1px rgba(109, 139, 255, 0.4);
+  animation: hero-network-breathe 5s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes hero-network-breathe {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.8; }
 }
 
 .hero-network-tag {

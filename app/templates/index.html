@@ -24,18 +24,14 @@
             class="hero-network-map"
             src="{{ url_for('static', filename='img/hero-network-map.png') }}"
             alt=""
-            width="541"
+            width="335"
             height="322"
             loading="eager"
           >
         </picture>
 
         <div class="hero-network-vignette"></div>
-
-        <!-- Softens the two source-image labels we're not using (unrelated
-             datacenter codes), letting them fade into the background. -->
-        <div class="hero-network-mask" style="--nx: 90.5; --ny: 42;"></div>
-        <div class="hero-network-mask" style="--nx: 73.5; --ny: 70;"></div>
+        <div class="hero-network-edge-fade"></div>
 
         <svg class="hero-network-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
           <defs>
@@ -52,34 +48,37 @@
             </linearGradient>
           </defs>
 
-          <path class="hero-network-path hero-network-path--primary" d="M46,36 Q32,38 19,58" />
-          <path class="hero-network-path hero-network-path--dim" d="M46,36 Q54,30 54,33" />
-          <path class="hero-network-path hero-network-path--dim" d="M46,36 Q52,24 58,17" />
-          <path class="hero-network-path hero-network-path--dim" d="M46,36 Q40,20 42,8" />
+          <path class="hero-network-path hero-network-path--primary" d="M75,36 Q53,40 31,58" />
+          <path class="hero-network-path hero-network-path--dim" d="M75,36 Q68,20 62,7" />
+          <path class="hero-network-path hero-network-path--dim" d="M75,36 Q82,22 84,12" />
+          <path class="hero-network-path hero-network-path--dim" d="M75,36 Q74,26 73,19" />
 
           <circle class="hero-network-pulse-dot" r="0.9">
-            <animateMotion dur="3.4s" repeatCount="indefinite" path="M46,36 Q32,38 19,58" />
+            <animateMotion dur="3.4s" repeatCount="indefinite" path="M75,36 Q53,40 31,58" />
           </circle>
         </svg>
 
-        <div class="hero-network-node hero-network-node--online" style="--nx: 46; --ny: 36;">
+        <div class="hero-network-node hero-network-node--online" style="--nx: 75; --ny: 36;">
           <span class="hero-network-ring"></span>
           <span class="hero-network-dot"></span>
         </div>
+        <div class="hero-network-node hero-network-node--dim" style="--nx: 62; --ny: 7; --delay: 0s;"></div>
+        <div class="hero-network-node hero-network-node--dim" style="--nx: 84; --ny: 12; --delay: -1.7s;"></div>
+        <div class="hero-network-node hero-network-node--dim" style="--nx: 73; --ny: 19; --delay: -3.3s;"></div>
 
-        <div class="hero-network-tag hero-network-tag--online" style="--nx: 46.5; --ny: 23;">
+        <div class="hero-network-tag hero-network-tag--online" style="--nx: 74.5; --ny: 22;">
           Netherlands<em>Online</em>
         </div>
-        <div class="hero-network-tag" style="--nx: 18; --ny: 70;">
+        <div class="hero-network-tag" style="--nx: 30; --ny: 71;">
           USA<em>Coming soon</em>
         </div>
-        <div class="hero-network-tag hero-network-tag--compact" style="--nx: 58; --ny: 17;">
-          Poland<em>Coming soon</em>
-        </div>
-        <div class="hero-network-tag hero-network-tag--compact" style="--nx: 42; --ny: 8;">
+        <div class="hero-network-tag hero-network-tag--compact" style="--nx: 62; --ny: 3;">
           Norway<em>Coming soon</em>
         </div>
-        <div class="hero-network-tag hero-network-tag--compact" style="--nx: 54; --ny: 33;">
+        <div class="hero-network-tag hero-network-tag--compact" style="--nx: 88; --ny: 10;">
+          Poland<em>Coming soon</em>
+        </div>
+        <div class="hero-network-tag hero-network-tag--compact" style="--nx: 73; --ny: 24;">
           Germany<em>Coming soon</em>
         </div>
       </div>
