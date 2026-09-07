@@ -16,24 +16,73 @@
       </div>
     </div>
 
-    <div class="hero-visual hero-hands" aria-hidden="true">
-      <svg class="hero-hands-svg" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="heroHandGradient" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="var(--accent)"/>
-            <stop offset="1" stop-color="var(--accent-2)"/>
-          </linearGradient>
-        </defs>
-        <g class="hero-hand hero-hand-left" stroke="url(#heroHandGradient)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M-10,155 C50,148 100,125 140,97"/>
-          <path d="M140,97 L186,79 M140,97 L179,101 M140,97 L173,117 M140,97 L166,130 M140,97 L151,121" stroke-width="3"/>
-        </g>
-        <g class="hero-hand hero-hand-right" stroke="url(#heroHandGradient)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M410,58 C345,66 295,88 260,106"/>
-          <path d="M260,106 L214,122 M260,106 L221,101 M260,106 L227,85 M260,106 L234,71 M260,106 L249,80" stroke-width="3"/>
-        </g>
-      </svg>
-      <span class="hero-hands-logo">{{ icon_cube(20) }}</span>
+    <div class="hero-visual hero-network" aria-hidden="true">
+      <div class="hero-network-frame">
+        <picture>
+          <source srcset="{{ url_for('static', filename='img/hero-network-map.webp') }}" type="image/webp">
+          <img
+            class="hero-network-map"
+            src="{{ url_for('static', filename='img/hero-network-map.png') }}"
+            alt=""
+            width="541"
+            height="322"
+            loading="eager"
+          >
+        </picture>
+
+        <div class="hero-network-vignette"></div>
+
+        <!-- Softens the two source-image labels we're not using (unrelated
+             datacenter codes), letting them fade into the background. -->
+        <div class="hero-network-mask" style="--nx: 90.5; --ny: 42;"></div>
+        <div class="hero-network-mask" style="--nx: 73.5; --ny: 70;"></div>
+
+        <svg class="hero-network-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <defs>
+            <filter id="heroNetworkGlow" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="0.9" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <linearGradient id="heroNetworkPrimary" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="var(--accent-2)"/>
+              <stop offset="1" stop-color="var(--accent)"/>
+            </linearGradient>
+          </defs>
+
+          <path class="hero-network-path hero-network-path--primary" d="M46,36 Q32,38 19,58" />
+          <path class="hero-network-path hero-network-path--dim" d="M46,36 Q54,30 54,33" />
+          <path class="hero-network-path hero-network-path--dim" d="M46,36 Q52,24 58,17" />
+          <path class="hero-network-path hero-network-path--dim" d="M46,36 Q40,20 42,8" />
+
+          <circle class="hero-network-pulse-dot" r="0.9">
+            <animateMotion dur="3.4s" repeatCount="indefinite" path="M46,36 Q32,38 19,58" />
+          </circle>
+        </svg>
+
+        <div class="hero-network-node hero-network-node--online" style="--nx: 46; --ny: 36;">
+          <span class="hero-network-ring"></span>
+          <span class="hero-network-dot"></span>
+        </div>
+
+        <div class="hero-network-tag hero-network-tag--online" style="--nx: 46.5; --ny: 23;">
+          Netherlands<em>Online</em>
+        </div>
+        <div class="hero-network-tag" style="--nx: 18; --ny: 70;">
+          USA<em>Coming soon</em>
+        </div>
+        <div class="hero-network-tag hero-network-tag--compact" style="--nx: 58; --ny: 17;">
+          Poland<em>Coming soon</em>
+        </div>
+        <div class="hero-network-tag hero-network-tag--compact" style="--nx: 42; --ny: 8;">
+          Norway<em>Coming soon</em>
+        </div>
+        <div class="hero-network-tag hero-network-tag--compact" style="--nx: 54; --ny: 33;">
+          Germany<em>Coming soon</em>
+        </div>
+      </div>
     </div>
   </div>
 </section>

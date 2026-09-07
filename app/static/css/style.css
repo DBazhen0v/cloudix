@@ -287,75 +287,188 @@ section:last-of-type {
   min-height: 320px;
 }
 
-.hero-hands {
+.hero-network {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.hero-hands-svg {
+.hero-network-frame {
+  position: relative;
   width: 100%;
-  max-width: 480px;
+  max-width: 560px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.hero-network-map {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hero-network-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 46% 36%,
+    transparent 0%,
+    transparent 22%,
+    rgba(8, 10, 22, 0.35) 55%,
+    rgba(8, 10, 22, 0.72) 100%
+  );
+  pointer-events: none;
+}
+
+.hero-network-mask {
+  position: absolute;
+  left: calc(var(--nx) * 1%);
+  top: calc(var(--ny) * 1%);
+  transform: translate(-50%, -50%);
+  width: 30%;
+  height: 22%;
+  background: radial-gradient(
+    closest-side,
+    rgba(8, 10, 22, 0.97) 0%,
+    rgba(8, 10, 22, 0.97) 60%,
+    rgba(8, 10, 22, 0) 100%
+  );
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.hero-network-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   overflow: visible;
 }
 
-.hero-hand {
-  opacity: 0;
-  filter: drop-shadow(0 4px 14px rgba(109, 139, 255, 0.35));
+.hero-network-path {
+  fill: none;
+  stroke: url(#heroNetworkPrimary);
+  stroke-width: 0.35;
+  stroke-linecap: round;
+  filter: url(#heroNetworkGlow);
+  opacity: 0.85;
 }
 
-.hero-hand-left {
-  transform: translate(-36px, 10px);
-  animation: hero-hand-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+.hero-network-path--dim {
+  stroke: var(--accent);
+  stroke-width: 0.22;
+  opacity: 0.35;
 }
 
-.hero-hand-right {
-  transform: translate(36px, -10px);
-  animation: hero-hand-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) 1.1s forwards;
+.hero-network-pulse-dot {
+  fill: #fff;
+  filter: url(#heroNetworkGlow);
+  opacity: 0.9;
 }
 
-@keyframes hero-hand-in {
-  to {
-    opacity: 1;
-    transform: translate(0, 0);
-  }
-}
-
-.hero-hands-logo {
+.hero-network-node {
   position: absolute;
-  top: 47%;
-  left: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
-  box-shadow: 0 0 22px rgba(109, 139, 255, 0.75);
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0.4);
-  animation: hero-logo-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 1.9s forwards;
+  left: calc(var(--nx) * 1%);
+  top: calc(var(--ny) * 1%);
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
 }
 
-@keyframes hero-logo-in {
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+.hero-network-dot {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.8);
+}
+
+.hero-network-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(109, 139, 255, 0.8);
+  animation: hero-network-pulse 2.6s ease-out infinite;
+}
+
+@keyframes hero-network-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
   }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.hero-network-tag {
+  position: absolute;
+  left: calc(var(--nx) * 1%);
+  top: calc(var(--ny) * 1%);
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(9, 12, 26, 0.78);
+  backdrop-filter: blur(2px);
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.hero-network-tag em {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 0.56rem;
+  color: rgba(226, 232, 255, 0.45);
+}
+
+.hero-network-tag--online {
+  color: #fff;
+  font-size: 0.72rem;
+  box-shadow: 0 0 14px rgba(109, 139, 255, 0.35);
+}
+
+.hero-network-tag--online em {
+  color: var(--accent);
+}
+
+.hero-network-tag--compact {
+  opacity: 0.65;
+  font-size: 0.56rem;
+  padding: 0.15rem 0.4rem;
+}
+
+.hero-network-tag--compact em {
+  font-size: 0.5rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-hand,
-  .hero-hands-logo {
-    opacity: 1;
-    transform: translate(0, 0) scale(1);
+  .hero-network-ring {
     animation: none;
+    opacity: 0.6;
   }
 
-  .hero-hands-logo {
-    transform: translate(-50%, -50%) scale(1);
+  .hero-network-pulse-dot {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero-network-tag--compact {
+    display: none;
+  }
+
+  .hero-network-path--dim {
+    display: none;
   }
 }
 
