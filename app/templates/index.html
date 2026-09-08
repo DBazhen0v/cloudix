@@ -120,6 +120,41 @@
 
 <section class="plans" id="plans">
   <h2 class="section-title">Тарифы</h2>
+
+  <div class="plans-region-tabs" role="tablist">
+    <button type="button" class="plans-region-tab active" data-region="nl" role="tab" aria-selected="true">
+      <svg class="plans-region-flag" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="30" height="6.67" y="0" fill="#AE1C28"/>
+        <rect width="30" height="6.67" y="6.67" fill="#fff"/>
+        <rect width="30" height="6.67" y="13.33" fill="#21468B"/>
+      </svg>
+      Нидерланды
+    </button>
+    <button type="button" class="plans-region-tab" data-region="de" role="tab" aria-selected="false">
+      <svg class="plans-region-flag" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="30" height="6.67" y="0" fill="#000"/>
+        <rect width="30" height="6.67" y="6.67" fill="#DD0000"/>
+        <rect width="30" height="6.67" y="13.33" fill="#FFCE00"/>
+      </svg>
+      Германия
+    </button>
+    <button type="button" class="plans-region-tab" data-region="us" role="tab" aria-selected="false">
+      <svg class="plans-region-flag" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="30" height="20" fill="#fff"/>
+        <rect width="30" height="1.54" y="0" fill="#B22234"/>
+        <rect width="30" height="1.54" y="3.08" fill="#B22234"/>
+        <rect width="30" height="1.54" y="6.15" fill="#B22234"/>
+        <rect width="30" height="1.54" y="9.23" fill="#B22234"/>
+        <rect width="30" height="1.54" y="12.31" fill="#B22234"/>
+        <rect width="30" height="1.54" y="15.38" fill="#B22234"/>
+        <rect width="30" height="1.54" y="18.46" fill="#B22234"/>
+        <rect width="12" height="10.77" fill="#3C3B6E"/>
+      </svg>
+      США
+    </button>
+  </div>
+
+  <div class="plans-region-panel" data-region-panel="nl">
   <div class="plans-tabs" role="tablist">
     {% for category, category_plans in plan_groups.items() %}
     <button
@@ -174,6 +209,12 @@
     </div>
   </div>
   {% endfor %}
+  </div>
+
+  <div class="plans-region-panel plans-region-soon" data-region-panel="other" hidden>
+    <p class="plans-region-soon-title">Сервера в этом регионе уже готовятся</p>
+    <p class="plans-region-soon-text">Пока полноценно работает дата-центр в Нидерландах — остальные регионы появятся по мере запуска. Загляните на вкладку «Нидерланды», чтобы выбрать тариф уже сейчас.</p>
+  </div>
 </section>
 
 <section class="faq" id="faq">
@@ -392,6 +433,26 @@
       });
     });
 
+  })();
+
+  (function () {
+    var regionTabs = document.querySelectorAll('.plans-region-tab');
+    var nlPanel = document.querySelector('.plans-region-panel[data-region-panel="nl"]');
+    var soonPanel = document.querySelector('.plans-region-panel[data-region-panel="other"]');
+    if (!regionTabs.length) { return; }
+
+    regionTabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        regionTabs.forEach(function (t) {
+          var active = t === tab;
+          t.classList.toggle('active', active);
+          t.setAttribute('aria-selected', String(active));
+        });
+        var isNl = tab.dataset.region === 'nl';
+        if (nlPanel) { nlPanel.hidden = !isNl; }
+        if (soonPanel) { soonPanel.hidden = isNl; }
+      });
+    });
   })();
 
   (function () {
