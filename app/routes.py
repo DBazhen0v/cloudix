@@ -12,7 +12,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash
 
-from .constants import PAYMENT_METHODS, PLAN_CATEGORY_ORDER
+from .constants import PAYMENT_METHODS, PLAN_CATEGORY_ORDER, SERVER_LINKS, SERVER_LOCATIONS
 from .db import get_db
 from .security import admin_login_required, check_csrf_token, get_csrf_token
 
@@ -57,6 +57,8 @@ def index():
         "index.html",
         plan_groups=plan_groups,
         crypto_wallet_address=current_app.config["CRYPTO_WALLET_ADDRESS"],
+        server_locations=SERVER_LOCATIONS,
+        server_links=SERVER_LINKS,
     )
 
 

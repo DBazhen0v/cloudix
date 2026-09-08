@@ -17,7 +17,7 @@
     </div>
 
     <div class="hero-visual hero-network" aria-hidden="true">
-      <div class="hero-network-frame">
+      <div class="hero-network-frame" id="hero-network-frame">
         <picture>
           <source srcset="{{ url_for('static', filename='img/hero-network-map.webp') }}" type="image/webp">
           <img
@@ -32,39 +32,58 @@
 
         <div class="hero-network-vignette"></div>
 
-        <!-- The source image labels this connection "CA"; it doesn't match
-             any of our regions, so cover it with our own USA tag instead of
-             editing the artwork. -->
-        <div class="hero-network-tag hero-network-cover-tag" style="--nx: 10.5; --ny: 41.5;">
-          USA<em>Soon</em>
-        </div>
-
         <svg class="hero-network-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
           <defs>
-            <filter id="heroNetworkGlow" x="-60%" y="-60%" width="220%" height="220%">
-              <feGaussianBlur stdDeviation="0.9" result="blur"/>
+            <filter id="heroNetworkGlow" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="0.7" result="blur"/>
               <feMerge>
                 <feMergeNode in="blur"/>
                 <feMergeNode in="SourceGraphic"/>
               </feMerge>
             </filter>
           </defs>
-
-          <path class="hero-network-path hero-network-path--primary" d="M45,49 L1,37" />
-
-          {% set pulses = [
-            ('M45,49 L1,37', '3.2s', '0s', 1.1, 'hero-network-pulse-dot--bright'),
-            ('M45,49 L47.5,30', '3.6s', '-0.6s', 0.8, ''),
-            ('M45,49 L52,52 L64,49', '3.4s', '-1.2s', 0.8, ''),
-            ('M45,49 L39,60', '4s', '-2s', 0.6, 'hero-network-pulse-dot--dim'),
-            ('M64,49 L67,35', '2.8s', '-1.6s', 0.6, 'hero-network-pulse-dot--dim'),
-          ] %}
-          {% for path, dur, begin, r, extra in pulses %}
-          <circle class="hero-network-pulse-dot {{ extra }}" r="{{ r }}">
-            <animateMotion dur="{{ dur }}" begin="{{ begin }}" repeatCount="indefinite" path="{{ path }}" />
-          </circle>
-          {% endfor %}
+          <g class="hero-network-lines-static" id="hero-network-lines-static">
+            {% for from_id, to_id in server_links %}
+            <path class="hero-network-line" data-from="{{ from_id }}" data-to="{{ to_id }}" fill="none" />
+            {% endfor %}
+          </g>
+          <g class="hero-network-lines-pulse" id="hero-network-lines-pulse"></g>
         </svg>
+
+        {% for loc in server_locations %}
+        <button
+          type="button"
+          class="hero-network-point {% if loc.status == 'online' %}is-online{% endif %}"
+          data-id="{{ loc.id }}"
+          data-city="{{ loc.city }}"
+          data-country="{{ loc.country }}"
+          data-flag="{{ loc.flag }}"
+          data-status="{{ loc.status }}"
+          data-ping="{{ loc.ping or '' }}"
+          data-uptime="{{ loc.uptime or '' }}"
+          data-network="{{ loc.network or '' }}"
+          style="--nx: {{ loc.x }}; --ny: {{ loc.y }};"
+          aria-pressed="false"
+        >
+          <span class="hero-network-point-glow"></span>
+          <span class="hero-network-point-dot"></span>
+          <span class="hero-network-point-label">{{ loc.city }}</span>
+        </button>
+        {% endfor %}
+
+        <div class="hero-network-card" id="hero-network-card" hidden>
+          <button type="button" class="hero-network-card-close" id="hero-network-card-close" aria-label="Закрыть">{{ icon_close(14) }}</button>
+          <div class="hero-network-card-head">
+            <span class="hero-network-card-flag" id="hero-network-card-flag"></span>
+            <div>
+              <p class="hero-network-card-city" id="hero-network-card-city"></p>
+              <p class="hero-network-card-country" id="hero-network-card-country"></p>
+            </div>
+          </div>
+          <p class="hero-network-card-status" id="hero-network-card-status"></p>
+          <dl class="hero-network-card-stats" id="hero-network-card-stats"></dl>
+          <a href="#plans" class="btn btn-small btn-full hero-network-card-cta" id="hero-network-card-cta">Выбрать эту локацию</a>
+        </div>
       </div>
     </div>
   </div>
@@ -356,6 +375,170 @@
 </dialog>
 
 <script>
+  (function () {
+    var frame = document.getElementById('hero-network-frame');
+    if (!frame) { return; }
+
+    var points = Array.prototype.slice.call(frame.querySelectorAll('.hero-network-point'));
+    var staticLines = Array.prototype.slice.call(frame.querySelectorAll('.hero-network-line'));
+    var pulseGroup = document.getElementById('hero-network-lines-pulse');
+    var card = document.getElementById('hero-network-card');
+    var cardClose = document.getElementById('hero-network-card-close');
+    var cardFlag = document.getElementById('hero-network-card-flag');
+    var cardCity = document.getElementById('hero-network-card-city');
+    var cardCountry = document.getElementById('hero-network-card-country');
+    var cardStatus = document.getElementById('hero-network-card-status');
+    var cardStats = document.getElementById('hero-network-card-stats');
+    var cardCta = document.getElementById('hero-network-card-cta');
+
+    var pointsById = {};
+    points.forEach(function (p) { pointsById[p.dataset.id] = p; });
+
+    function pointPos(point) {
+      var style = getComputedStyle(point);
+      return {
+        x: parseFloat(style.getPropertyValue('--nx')),
+        y: parseFloat(style.getPropertyValue('--ny'))
+      };
+    }
+
+    function curvedPath(a, b) {
+      var mx = (a.x + b.x) / 2;
+      var my = (a.y + b.y) / 2;
+      var dx = b.x - a.x;
+      var dy = b.y - a.y;
+      var len = Math.sqrt(dx * dx + dy * dy) || 1;
+      var bend = Math.min(len * 0.14, 6);
+      var cx = mx + (-dy / len) * bend;
+      var cy = my + (dx / len) * bend;
+      return 'M' + a.x + ',' + a.y + ' Q' + cx + ',' + cy + ' ' + b.x + ',' + b.y;
+    }
+
+    staticLines.forEach(function (line) {
+      var a = pointsById[line.dataset.from];
+      var b = pointsById[line.dataset.to];
+      if (!a || !b) { return; }
+      line.setAttribute('d', curvedPath(pointPos(a), pointPos(b)));
+    });
+
+    var FLAG_STRIPES = {
+      nl: ['#AE1C28', '#fff', '#21468B'],
+      de: ['#000', '#DD0000', '#FFCE00']
+    };
+
+    function flagSvg(code) {
+      if (code === 'us') {
+        return '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">' +
+          '<rect width="30" height="20" fill="#fff"/>' +
+          '<rect width="30" height="1.54" y="0" fill="#B22234"/>' +
+          '<rect width="30" height="1.54" y="3.08" fill="#B22234"/>' +
+          '<rect width="30" height="1.54" y="6.15" fill="#B22234"/>' +
+          '<rect width="30" height="1.54" y="9.23" fill="#B22234"/>' +
+          '<rect width="30" height="1.54" y="12.31" fill="#B22234"/>' +
+          '<rect width="30" height="1.54" y="15.38" fill="#B22234"/>' +
+          '<rect width="30" height="1.54" y="18.46" fill="#B22234"/>' +
+          '<rect width="12" height="10.77" fill="#3C3B6E"/></svg>';
+      }
+      if (code === 'pl') {
+        return '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">' +
+          '<rect width="30" height="10" y="0" fill="#fff"/>' +
+          '<rect width="30" height="10" y="10" fill="#DC143C"/></svg>';
+      }
+      if (code === 'no') {
+        return '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">' +
+          '<rect width="30" height="20" fill="#EF2B2D"/>' +
+          '<rect width="30" height="4" y="8" fill="#fff"/>' +
+          '<rect width="4" height="20" x="8" fill="#fff"/>' +
+          '<rect width="30" height="2" y="9" fill="#002868"/>' +
+          '<rect width="2" height="20" x="9" fill="#002868"/></svg>';
+      }
+      var colors = FLAG_STRIPES[code];
+      if (!colors) { return ''; }
+      var h = 20 / colors.length;
+      var rects = colors.map(function (c, i) {
+        return '<rect width="30" height="' + h + '" y="' + (i * h) + '" fill="' + c + '"/>';
+      }).join('');
+      return '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">' + rects + '</svg>';
+    }
+
+    function setActiveLine(id) {
+      points.forEach(function (p) {
+        var active = p.dataset.id === id;
+        p.classList.toggle('is-active', active);
+        p.setAttribute('aria-pressed', String(active));
+      });
+
+      staticLines.forEach(function (line) {
+        var connected = line.dataset.from === id || line.dataset.to === id;
+        line.classList.toggle('is-active', connected);
+      });
+
+      pulseGroup.innerHTML = '';
+      staticLines.forEach(function (line) {
+        if (line.dataset.from !== id && line.dataset.to !== id) { return; }
+        var d = line.getAttribute('d');
+        var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('r', '0.7');
+        circle.setAttribute('class', 'hero-network-pulse-dot');
+        var anim = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+        anim.setAttribute('dur', (4 + Math.random() * 1.5).toFixed(1) + 's');
+        anim.setAttribute('repeatCount', 'indefinite');
+        anim.setAttribute('path', d);
+        circle.appendChild(anim);
+        pulseGroup.appendChild(circle);
+      });
+    }
+
+    function showCard(point) {
+      var isOnline = point.dataset.status === 'online';
+      cardFlag.innerHTML = flagSvg(point.dataset.flag);
+      cardCity.textContent = point.dataset.city;
+      cardCountry.textContent = point.dataset.country;
+      cardStatus.innerHTML = isOnline
+        ? '<span class="hero-network-status-dot"></span>Online'
+        : '<span class="hero-network-status-dot hero-network-status-dot--soon"></span>Скоро';
+
+      if (isOnline) {
+        cardStats.innerHTML =
+          '<div><dt>Ping</dt><dd>' + point.dataset.ping + '</dd></div>' +
+          '<div><dt>Uptime</dt><dd>' + point.dataset.uptime + '</dd></div>' +
+          '<div><dt>Network</dt><dd>' + point.dataset.network + '</dd></div>';
+        cardCta.textContent = 'Выбрать эту локацию';
+        cardCta.classList.remove('btn-secondary');
+        cardCta.removeAttribute('aria-disabled');
+        cardCta.setAttribute('href', '#plans');
+      } else {
+        cardStats.innerHTML = '<div class="hero-network-card-soon-note">Локация в разработке — уже скоро.</div>';
+        cardCta.textContent = 'Скоро будет доступно';
+        cardCta.classList.add('btn-secondary');
+        cardCta.setAttribute('aria-disabled', 'true');
+        cardCta.setAttribute('href', '#plans');
+      }
+
+      card.hidden = false;
+    }
+
+    points.forEach(function (point) {
+      point.addEventListener('click', function () {
+        setActiveLine(point.dataset.id);
+        showCard(point);
+      });
+    });
+
+    if (cardClose) {
+      cardClose.addEventListener('click', function () { card.hidden = true; });
+    }
+
+    if (cardCta) {
+      cardCta.addEventListener('click', function (e) {
+        if (cardCta.getAttribute('aria-disabled') === 'true') { e.preventDefault(); }
+      });
+    }
+
+    var defaultActive = points.filter(function (p) { return p.dataset.status === 'online'; })[0];
+    if (defaultActive) { setActiveLine(defaultActive.dataset.id); }
+  })();
+
   (function () {
     var dialog = document.getElementById('order-dialog');
 
