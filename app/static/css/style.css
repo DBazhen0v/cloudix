@@ -359,23 +359,6 @@ section:last-of-type {
   pointer-events: none;
 }
 
-.hero-network-image-mask {
-  position: absolute;
-  left: calc(var(--nx) * 1%);
-  top: calc(var(--ny) * 1%);
-  transform: translate(-50%, -50%);
-  width: 26%;
-  height: 20%;
-  background: radial-gradient(
-    closest-side,
-    rgba(8, 10, 22, 0.97) 0%,
-    rgba(8, 10, 22, 0.97) 60%,
-    rgba(8, 10, 22, 0) 100%
-  );
-  filter: blur(2px);
-  pointer-events: none;
-}
-
 .hero-network-lines {
   position: absolute;
   inset: 0;

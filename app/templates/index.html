@@ -32,21 +32,12 @@
             src="{{ url_for('static', filename='img/hero-network-map.png') }}"
             alt=""
             width="1000"
-            height="842"
+            height="797"
             loading="eager"
           >
         </picture>
 
         <div class="hero-network-vignette"></div>
-
-        <!-- The source photo has its own baked-in city labels ("CA",
-             "Netherlands", "Norway", "Poland") that survive the dimming
-             filter above - blot them out so nothing but our own
-             data-driven labels is readable. -->
-        <div class="hero-network-image-mask" style="--nx: 7.8; --ny: 41.5;"></div>
-        <div class="hero-network-image-mask" style="--nx: 39; --ny: 57;"></div>
-        <div class="hero-network-image-mask" style="--nx: 49; --ny: 22;"></div>
-        <div class="hero-network-image-mask" style="--nx: 65; --ny: 57;"></div>
 
         <svg class="hero-network-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
           <defs>
