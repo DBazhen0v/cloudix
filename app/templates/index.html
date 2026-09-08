@@ -17,6 +17,13 @@
     </div>
 
     <div class="hero-visual hero-network" aria-hidden="true">
+      <div class="hero-network-header">
+        <span class="hero-network-header-title">Europe infrastructure</span>
+        <span class="hero-network-header-meta">
+          <span class="hero-network-live-dot"></span>
+          {{ server_locations|length }} locations · All systems operational
+        </span>
+      </div>
       <div class="hero-network-frame" id="hero-network-frame">
         <picture>
           <source srcset="{{ url_for('static', filename='img/hero-network-map.webp') }}" type="image/webp">
@@ -31,6 +38,15 @@
         </picture>
 
         <div class="hero-network-vignette"></div>
+
+        <!-- The source photo has its own baked-in city labels ("CA",
+             "Netherlands", "Norway", "Poland") that survive the dimming
+             filter above - blot them out so nothing but our own
+             data-driven labels is readable. -->
+        <div class="hero-network-image-mask" style="--nx: 7.8; --ny: 41.5;"></div>
+        <div class="hero-network-image-mask" style="--nx: 39; --ny: 57;"></div>
+        <div class="hero-network-image-mask" style="--nx: 49; --ny: 22;"></div>
+        <div class="hero-network-image-mask" style="--nx: 65; --ny: 57;"></div>
 
         <svg class="hero-network-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
           <defs>
@@ -62,9 +78,11 @@
           data-ping="{{ loc.ping or '' }}"
           data-uptime="{{ loc.uptime or '' }}"
           data-network="{{ loc.network or '' }}"
+          data-storage="{{ loc.storage or '' }}"
           style="--nx: {{ loc.x }}; --ny: {{ loc.y }};"
           aria-pressed="false"
         >
+          <span class="hero-network-point-ripple"></span>
           <span class="hero-network-point-glow"></span>
           <span class="hero-network-point-dot"></span>
           <span class="hero-network-point-label">{{ loc.city }}</span>
@@ -80,9 +98,11 @@
               <p class="hero-network-card-country" id="hero-network-card-country"></p>
             </div>
           </div>
-          <p class="hero-network-card-status" id="hero-network-card-status"></p>
-          <dl class="hero-network-card-stats" id="hero-network-card-stats"></dl>
-          <a href="#plans" class="btn btn-small btn-full hero-network-card-cta" id="hero-network-card-cta">Выбрать эту локацию</a>
+          <div class="hero-network-card-status-row">
+            <span class="hero-network-card-status" id="hero-network-card-status"></span>
+          </div>
+          <div class="hero-network-card-stats" id="hero-network-card-stats"></div>
+          <a href="#plans" class="btn btn-small btn-full hero-network-card-cta" id="hero-network-card-cta">Выбрать локацию</a>
         </div>
       </div>
     </div>
@@ -92,11 +112,26 @@
 <section class="trust-strip">
   <h2 class="section-eyebrow">Всё необходимое для запуска</h2>
   <div class="trust-grid">
-    <div class="trust-item">{{ icon_bolt() }}<span>Быстрый запуск</span></div>
-    <div class="trust-item">{{ icon_shield() }}<span>Root/Admin доступ</span></div>
-    <div class="trust-item">{{ icon_wrench() }}<span>Ручная настройка</span></div>
-    <div class="trust-item">{{ icon_headset() }}<span>Поддержка</span></div>
-    <div class="trust-item">{{ icon_disk() }}<span>NVMe storage</span></div>
+    <div class="trust-item">
+      {{ icon_bolt() }}<span>Быстрый запуск</span>
+      <span class="trust-item-hint">Готовый сервер за 1 день{{ icon_arrow_right(12) }}</span>
+    </div>
+    <div class="trust-item">
+      {{ icon_shield() }}<span>Root/Admin доступ</span>
+      <span class="trust-item-hint">Полный контроль{{ icon_arrow_right(12) }}</span>
+    </div>
+    <div class="trust-item">
+      {{ icon_wrench() }}<span>Ручная настройка</span>
+      <span class="trust-item-hint">Настроим под вашу задачу{{ icon_arrow_right(12) }}</span>
+    </div>
+    <div class="trust-item">
+      {{ icon_headset() }}<span>Поддержка</span>
+      <span class="trust-item-hint">На связи 24/7{{ icon_arrow_right(12) }}</span>
+    </div>
+    <div class="trust-item">
+      {{ icon_disk() }}<span>NVMe storage</span>
+      <span class="trust-item-hint">Высокая скорость диска{{ icon_arrow_right(12) }}</span>
+    </div>
   </div>
 </section>
 
@@ -461,32 +496,67 @@
       return '<svg viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">' + rects + '</svg>';
     }
 
-    function setActiveLine(id) {
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Click: persistent highlight on the location and its connections.
+    function setActive(id) {
       points.forEach(function (p) {
         var active = p.dataset.id === id;
         p.classList.toggle('is-active', active);
         p.setAttribute('aria-pressed', String(active));
       });
-
       staticLines.forEach(function (line) {
         var connected = line.dataset.from === id || line.dataset.to === id;
         line.classList.toggle('is-active', connected);
       });
+    }
 
-      pulseGroup.innerHTML = '';
-      staticLines.forEach(function (line) {
-        if (line.dataset.from !== id && line.dataset.to !== id) { return; }
-        var d = line.getAttribute('d');
-        var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('r', '0.7');
-        circle.setAttribute('class', 'hero-network-pulse-dot');
-        var anim = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
-        anim.setAttribute('dur', (4 + Math.random() * 1.5).toFixed(1) + 's');
-        anim.setAttribute('repeatCount', 'indefinite');
-        anim.setAttribute('path', d);
-        circle.appendChild(anim);
-        pulseGroup.appendChild(circle);
+    // Hover: brighten the connections touching this location and fade the
+    // rest of the map so it's obvious the point is interactive.
+    function setHover(id) {
+      points.forEach(function (p) {
+        p.classList.toggle('is-hovered', p.dataset.id === id);
       });
+      frame.classList.toggle('has-hover', id !== null);
+      staticLines.forEach(function (line) {
+        var connected = id !== null && (line.dataset.from === id || line.dataset.to === id);
+        line.classList.toggle('is-hovered', connected);
+      });
+    }
+
+    function triggerRipple(point) {
+      point.classList.remove('is-rippling');
+      void point.offsetWidth;
+      point.classList.add('is-rippling');
+      window.setTimeout(function () { point.classList.remove('is-rippling'); }, 700);
+    }
+
+    // A single small pulse travels a random connection every few seconds,
+    // independent of hover/click, so the map reads as a live network rather
+    // than a static illustration.
+    function spawnAmbientPulse() {
+      if (!staticLines.length) { return; }
+      var line = staticLines[Math.floor(Math.random() * staticLines.length)];
+      var d = line.getAttribute('d');
+      if (!d) { return; }
+      var dur = 2.2 + Math.random() * 0.8;
+      var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('r', '0.7');
+      circle.setAttribute('class', 'hero-network-pulse-dot');
+      var anim = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+      anim.setAttribute('dur', dur.toFixed(1) + 's');
+      anim.setAttribute('repeatCount', '1');
+      anim.setAttribute('path', d);
+      circle.appendChild(anim);
+      pulseGroup.appendChild(circle);
+      window.setTimeout(function () {
+        if (circle.parentNode) { circle.parentNode.removeChild(circle); }
+      }, dur * 1000 + 150);
+    }
+
+    if (!reduceMotion) {
+      window.setTimeout(spawnAmbientPulse, 900);
+      window.setInterval(spawnAmbientPulse, 3200);
     }
 
     function showCard(point) {
@@ -495,32 +565,36 @@
       cardCity.textContent = point.dataset.city;
       cardCountry.textContent = point.dataset.country;
       cardStatus.innerHTML = isOnline
-        ? '<span class="hero-network-status-dot"></span>Online'
-        : '<span class="hero-network-status-dot hero-network-status-dot--soon"></span>Скоро';
+        ? '<span class="hero-network-status-dot"></span>All systems operational'
+        : '<span class="hero-network-status-dot hero-network-status-dot--soon"></span>Coming soon';
 
       if (isOnline) {
         cardStats.innerHTML =
-          '<div><dt>Ping</dt><dd>' + point.dataset.ping + '</dd></div>' +
-          '<div><dt>Uptime</dt><dd>' + point.dataset.uptime + '</dd></div>' +
-          '<div><dt>Network</dt><dd>' + point.dataset.network + '</dd></div>';
-        cardCta.textContent = 'Выбрать эту локацию';
+          '<div class="hero-network-stat"><b>' + point.dataset.ping + '</b><span>Ping</span></div>' +
+          '<div class="hero-network-stat"><b>' + point.dataset.uptime + '</b><span>Uptime</span></div>' +
+          '<div class="hero-network-stat"><b>' + point.dataset.network + '</b><span>Network</span></div>' +
+          '<div class="hero-network-stat"><b>' + point.dataset.storage + '</b><span>Storage</span></div>';
+        cardCta.textContent = 'Выбрать локацию';
         cardCta.classList.remove('btn-secondary');
         cardCta.removeAttribute('aria-disabled');
-        cardCta.setAttribute('href', '#plans');
       } else {
         cardStats.innerHTML = '<div class="hero-network-card-soon-note">Локация в разработке — уже скоро.</div>';
         cardCta.textContent = 'Скоро будет доступно';
         cardCta.classList.add('btn-secondary');
         cardCta.setAttribute('aria-disabled', 'true');
-        cardCta.setAttribute('href', '#plans');
       }
+      cardCta.dataset.flag = point.dataset.flag;
+      cardCta.setAttribute('href', '#plans');
 
       card.hidden = false;
     }
 
     points.forEach(function (point) {
+      point.addEventListener('mouseenter', function () { setHover(point.dataset.id); });
+      point.addEventListener('mouseleave', function () { setHover(null); });
       point.addEventListener('click', function () {
-        setActiveLine(point.dataset.id);
+        triggerRipple(point);
+        setActive(point.dataset.id);
         showCard(point);
       });
     });
@@ -531,12 +605,14 @@
 
     if (cardCta) {
       cardCta.addEventListener('click', function (e) {
-        if (cardCta.getAttribute('aria-disabled') === 'true') { e.preventDefault(); }
+        if (cardCta.getAttribute('aria-disabled') === 'true') { e.preventDefault(); return; }
+        var regionTab = document.querySelector('.plans-region-tab[data-region="' + cardCta.dataset.flag + '"]');
+        if (regionTab && !regionTab.classList.contains('active')) { regionTab.click(); }
       });
     }
 
     var defaultActive = points.filter(function (p) { return p.dataset.status === 'online'; })[0];
-    if (defaultActive) { setActiveLine(defaultActive.dataset.id); }
+    if (defaultActive) { setActive(defaultActive.dataset.id); }
   })();
 
   (function () {

@@ -19,6 +19,7 @@ SERVER_LOCATIONS = [
         "ping": "8 ms",
         "uptime": "99.98%",
         "network": "1 Gbps",
+        "storage": "NVMe",
     },
     {
         "id": "fra",
