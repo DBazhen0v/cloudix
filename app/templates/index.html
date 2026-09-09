@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_icons.html" import icon_bolt, icon_shield, icon_wrench, icon_headset, icon_disk, icon_bot, icon_globe, icon_api, icon_layers, icon_cube, icon_check_circle, icon_card, icon_crypto, icon_transfer, icon_arrow_right, icon_close %}
+{% from "_icons.html" import icon_bolt, icon_shield, icon_wrench, icon_headset, icon_disk, icon_bot, icon_globe, icon_cube, icon_check_circle, icon_card, icon_crypto, icon_transfer, icon_arrow_right, icon_close %}
 
 {% block title %}Cloudex — серверы под ключ{% endblock %}
 
@@ -186,14 +186,52 @@
 </section>
 
 <section class="use-cases" id="use-cases">
-  <h2 class="section-title">Для чего подходит</h2>
-  <div class="use-cases-grid">
-    <div class="use-case-card">{{ icon_bot() }}<span>Telegram / Discord боты</span></div>
-    <div class="use-case-card">{{ icon_globe() }}<span>Web-сайты</span></div>
-    <div class="use-case-card">{{ icon_api() }}<span>API и backend</span></div>
-    <div class="use-case-card">{{ icon_layers() }}<span>Python / Node.js приложения</span></div>
-    <div class="use-case-card">{{ icon_cube() }}<span>Minecraft</span></div>
+  <h2 class="section-title">Что вы хотите запустить?</h2>
+  <p class="section-subtitle">Выберите задачу — подберём подходящую конфигурацию из реальных тарифов.</p>
+
+  <div class="usecase-picker" role="tablist">
+    <button type="button" class="usecase-tab active" data-usecase="bot" role="tab" aria-selected="true">
+      {{ icon_bot(20) }}<span>Bot</span>
+    </button>
+    <button type="button" class="usecase-tab" data-usecase="website" role="tab" aria-selected="false">
+      {{ icon_globe(20) }}<span>Website</span>
+    </button>
+    <button type="button" class="usecase-tab" data-usecase="minecraft" role="tab" aria-selected="false">
+      {{ icon_cube(20) }}<span>Minecraft</span>
+    </button>
   </div>
+
+  {% for uc in [
+    {"key": "bot", "category": "Серверы для ботов и скриптов", "title": "Telegram / Discord бот"},
+    {"key": "website", "category": "Веб-хостинг", "title": "Сайт или API"},
+    {"key": "minecraft", "category": "Minecraft-сервера", "title": "Игровой сервер"},
+  ] %}
+  {% set uc_plans = plan_groups.get(uc.category, []) %}
+  {% if uc_plans %}
+  {% set uc_rec = uc_plans[1] if uc_plans|length > 1 else uc_plans[0] %}
+  <div class="usecase-panel {% if loop.first %}active{% endif %}" data-usecase-panel="{{ uc.key }}" {% if not loop.first %}hidden{% endif %}>
+    <div class="usecase-recommend">
+      <span class="usecase-recommend-eyebrow">Рекомендуем · {{ uc.title }}</span>
+      <div class="usecase-recommend-body">
+        <div class="usecase-recommend-specs">
+          <h3>{{ uc_rec["name"] }}</h3>
+          <ul>
+            {% for feature in uc_rec["specs"].split(",")[:3] %}
+            <li>{{ icon_check_circle(14) }}{{ feature.strip() }}</li>
+            {% endfor %}
+          </ul>
+          <p class="usecase-recommend-location">Амстердам, Нидерланды</p>
+        </div>
+        <div class="usecase-recommend-price">
+          <span>От</span>
+          <strong>{{ uc_plans[0]["price"] }}</strong>
+          <a href="#plans" class="btn btn-secondary usecase-recommend-cta" data-category="{{ uc.category }}">Смотреть тарифы</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  {% endfor %}
 </section>
 
 <section class="plans" id="plans">
@@ -239,6 +277,7 @@
       type="button"
       class="plans-tab {% if loop.first %}active{% endif %}"
       data-category-index="{{ loop.index0 }}"
+      data-category-name="{{ category }}"
       role="tab"
       aria-selected="{{ 'true' if loop.first else 'false' }}"
     >
@@ -970,6 +1009,33 @@
             if (carousel && carousel.refreshArrows) { carousel.refreshArrows(); }
           }
         });
+      });
+    });
+  })();
+
+  (function () {
+    var tabs = document.querySelectorAll('.usecase-tab');
+    var panels = document.querySelectorAll('.usecase-panel');
+    if (!tabs.length) { return; }
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var key = tab.dataset.usecase;
+        tabs.forEach(function (t) {
+          var active = t === tab;
+          t.classList.toggle('active', active);
+          t.setAttribute('aria-selected', String(active));
+        });
+        panels.forEach(function (p) {
+          p.hidden = p.dataset.usecasePanel !== key;
+        });
+      });
+    });
+
+    document.querySelectorAll('.usecase-recommend-cta').forEach(function (cta) {
+      cta.addEventListener('click', function () {
+        var categoryTab = document.querySelector('.plans-tab[data-category-name="' + cta.dataset.category + '"]');
+        if (categoryTab && !categoryTab.classList.contains('active')) { categoryTab.click(); }
       });
     });
   })();
