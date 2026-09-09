@@ -12,7 +12,15 @@ from flask import (
 )
 from werkzeug.security import check_password_hash
 
-from .constants import PAYMENT_METHODS, PLAN_CATEGORY_ORDER, SERVER_LINKS, SERVER_LOCATIONS
+from .constants import (
+    HERO_MAP_BOUNDS,
+    HERO_MAP_VIEW_HEIGHT,
+    HERO_MAP_VIEW_WIDTH,
+    PAYMENT_METHODS,
+    PLAN_CATEGORY_ORDER,
+    SERVER_LINKS,
+    SERVER_LOCATIONS,
+)
 from .db import get_db
 from .security import admin_login_required, check_csrf_token, get_csrf_token
 
@@ -59,6 +67,9 @@ def index():
         crypto_wallet_address=current_app.config["CRYPTO_WALLET_ADDRESS"],
         server_locations=SERVER_LOCATIONS,
         server_links=SERVER_LINKS,
+        hero_map_bounds=HERO_MAP_BOUNDS,
+        hero_map_view_width=HERO_MAP_VIEW_WIDTH,
+        hero_map_view_height=HERO_MAP_VIEW_HEIGHT,
     )
 
 

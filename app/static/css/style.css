@@ -336,55 +336,81 @@ section:last-of-type {
   position: relative;
   width: 100%;
   max-width: 620px;
+  aspect-ratio: 1000 / 840.6;
   border-radius: var(--radius-lg);
-  overflow: hidden;
   box-shadow: var(--shadow);
+  background: var(--bg);
 }
 
-.hero-network-map {
-  display: block;
+/* Only the map itself (borders + vignette) is clipped to the rounded
+   corners - points and their labels stay outside this wrapper so a
+   location pinned near the edge (e.g. New York) never gets its label
+   cut off. */
+.hero-network-map-clip {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.hero-network-map-svg {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: auto;
-  filter: saturate(0.35) brightness(0.55);
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.hero-map-country {
+  fill: rgba(148, 163, 209, 0.055);
+  stroke: rgba(148, 163, 209, 0.3);
+  stroke-width: 1;
+  transition: fill var(--transition), stroke var(--transition);
+}
+
+.hero-map-country.is-highlighted {
+  fill: rgba(109, 139, 255, 0.16);
+  stroke: rgba(109, 139, 255, 0.55);
 }
 
 .hero-network-vignette {
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    circle at 45% 49%,
-    rgba(8, 10, 22, 0.35) 0%,
-    rgba(8, 10, 22, 0.72) 100%
+    circle at 50% 50%,
+    rgba(7, 11, 20, 0) 55%,
+    rgba(7, 11, 20, 0.45) 100%
   );
   pointer-events: none;
 }
 
-.hero-network-lines {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
 .hero-network-line {
-  stroke: rgba(148, 163, 209, 0.28);
-  stroke-width: 0.18;
+  stroke: rgba(148, 163, 209, 0.32);
+  stroke-width: 1;
   stroke-linecap: round;
   transition: stroke var(--transition), stroke-width var(--transition), opacity var(--transition);
 }
 
 .hero-network-line.is-active {
   stroke: var(--accent);
-  stroke-width: 0.3;
+  stroke-width: 1.7;
   opacity: 0.95;
   filter: url(#heroNetworkGlow);
 }
 
 .hero-network-line.is-hovered {
   stroke: rgba(109, 139, 255, 0.75);
-  stroke-width: 0.26;
+  stroke-width: 1.45;
   opacity: 0.95;
+}
+
+.hero-network-frame.has-active .hero-network-point:not(.is-active):not(.is-hovered) {
+  opacity: 0.62;
+}
+
+.hero-network-frame.has-active .hero-network-line:not(.is-active):not(.is-hovered) {
+  opacity: 0.55;
 }
 
 .hero-network-pulse-dot {

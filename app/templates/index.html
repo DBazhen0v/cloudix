@@ -24,38 +24,39 @@
           {{ server_locations|length }} locations · All systems operational
         </span>
       </div>
-      <div class="hero-network-frame" id="hero-network-frame">
-        <picture>
-          <source srcset="{{ url_for('static', filename='img/hero-network-map.webp') }}" type="image/webp">
-          <img
-            class="hero-network-map"
-            src="{{ url_for('static', filename='img/hero-network-map.png') }}"
-            alt=""
-            width="1000"
-            height="797"
-            loading="eager"
-          >
-        </picture>
+      <div
+        class="hero-network-frame"
+        id="hero-network-frame"
+        data-view-w="{{ hero_map_view_width }}"
+        data-view-h="{{ hero_map_view_height }}"
+        data-lon-min="{{ hero_map_bounds.lon_min }}"
+        data-lon-max="{{ hero_map_bounds.lon_max }}"
+        data-lat-min="{{ hero_map_bounds.lat_min }}"
+        data-lat-max="{{ hero_map_bounds.lat_max }}"
+        data-borders-url="{{ url_for('static', filename='data/europe-borders.geojson') }}"
+      >
+        <div class="hero-network-map-clip">
+          <svg class="hero-network-map-svg" viewBox="0 0 {{ hero_map_view_width }} {{ hero_map_view_height }}">
+            <defs>
+              <filter id="heroNetworkGlow" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="3" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            <g class="hero-map-countries" id="hero-map-countries"></g>
+            <g class="hero-network-lines-static" id="hero-network-lines-static">
+              {% for from_id, to_id in server_links %}
+              <path class="hero-network-line" data-from="{{ from_id }}" data-to="{{ to_id }}" fill="none" vector-effect="non-scaling-stroke" />
+              {% endfor %}
+            </g>
+            <g class="hero-network-lines-pulse" id="hero-network-lines-pulse"></g>
+          </svg>
 
-        <div class="hero-network-vignette"></div>
-
-        <svg class="hero-network-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <defs>
-            <filter id="heroNetworkGlow" x="-100%" y="-100%" width="300%" height="300%">
-              <feGaussianBlur stdDeviation="0.7" result="blur"/>
-              <feMerge>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          <g class="hero-network-lines-static" id="hero-network-lines-static">
-            {% for from_id, to_id in server_links %}
-            <path class="hero-network-line" data-from="{{ from_id }}" data-to="{{ to_id }}" fill="none" />
-            {% endfor %}
-          </g>
-          <g class="hero-network-lines-pulse" id="hero-network-lines-pulse"></g>
-        </svg>
+          <div class="hero-network-vignette"></div>
+        </div>
 
         {% for loc in server_locations %}
         <button
@@ -66,11 +67,12 @@
           data-country="{{ loc.country }}"
           data-flag="{{ loc.flag }}"
           data-status="{{ loc.status }}"
+          data-lat="{{ loc.lat }}"
+          data-lon="{{ loc.lon }}"
           data-ping="{{ loc.ping or '' }}"
           data-uptime="{{ loc.uptime or '' }}"
           data-network="{{ loc.network or '' }}"
           data-storage="{{ loc.storage or '' }}"
-          style="--nx: {{ loc.x }}; --ny: {{ loc.y }};"
           aria-pressed="false"
         >
           <span class="hero-network-point-ripple"></span>
@@ -408,6 +410,7 @@
     var points = Array.prototype.slice.call(frame.querySelectorAll('.hero-network-point'));
     var staticLines = Array.prototype.slice.call(frame.querySelectorAll('.hero-network-line'));
     var pulseGroup = document.getElementById('hero-network-lines-pulse');
+    var countriesGroup = document.getElementById('hero-map-countries');
     var card = document.getElementById('hero-network-card');
     var cardClose = document.getElementById('hero-network-card-close');
     var cardFlag = document.getElementById('hero-network-card-flag');
@@ -420,13 +423,45 @@
     var pointsById = {};
     points.forEach(function (p) { pointsById[p.dataset.id] = p; });
 
-    function pointPos(point) {
-      var style = getComputedStyle(point);
+    // Single shared projection: every point, line and country border on the
+    // map is derived from real lat/lon through this same equirectangular
+    // projection (a standard parallel at the crop's mid-latitude keeps the
+    // shape undistorted) - nothing is ever hand-positioned with x/y.
+    var VIEW_W = parseFloat(frame.dataset.viewW);
+    var VIEW_H = parseFloat(frame.dataset.viewH);
+    var LON_MIN = parseFloat(frame.dataset.lonMin);
+    var LON_MAX = parseFloat(frame.dataset.lonMax);
+    var LAT_MIN = parseFloat(frame.dataset.latMin);
+    var LAT_MAX = parseFloat(frame.dataset.latMax);
+
+    function project(lon, lat) {
       return {
-        x: parseFloat(style.getPropertyValue('--nx')),
-        y: parseFloat(style.getPropertyValue('--ny'))
+        x: (lon - LON_MIN) / (LON_MAX - LON_MIN) * VIEW_W,
+        y: (LAT_MAX - lat) / (LAT_MAX - LAT_MIN) * VIEW_H
       };
     }
+
+    // A handful of locations (e.g. New York) sit outside this Europe crop
+    // by design - real lat/lon still drives them, but they're pinned just
+    // inside the frame edge instead of projecting off-canvas.
+    var EDGE_MARGIN = 0.035;
+    function clampToFrame(p) {
+      var marginX = VIEW_W * EDGE_MARGIN;
+      var marginY = VIEW_H * EDGE_MARGIN;
+      var x = Math.max(marginX, Math.min(VIEW_W - marginX, p.x));
+      var y = Math.max(marginY, Math.min(VIEW_H - marginY, p.y));
+      return { x: x, y: y, offFrame: x !== p.x || y !== p.y };
+    }
+
+    var pointGeo = {};
+    points.forEach(function (p) {
+      var projected = project(parseFloat(p.dataset.lon), parseFloat(p.dataset.lat));
+      var geo = clampToFrame(projected);
+      pointGeo[p.dataset.id] = geo;
+      p.classList.toggle('is-off-frame', geo.offFrame);
+      p.style.setProperty('--nx', (geo.x / VIEW_W * 100).toFixed(2));
+      p.style.setProperty('--ny', (geo.y / VIEW_H * 100).toFixed(2));
+    });
 
     function curvedPath(a, b) {
       var mx = (a.x + b.x) / 2;
@@ -434,18 +469,72 @@
       var dx = b.x - a.x;
       var dy = b.y - a.y;
       var len = Math.sqrt(dx * dx + dy * dy) || 1;
-      var bend = Math.min(len * 0.14, 6);
+      var bend = Math.min(len * 0.14, VIEW_W * 0.06);
       var cx = mx + (-dy / len) * bend;
       var cy = my + (dx / len) * bend;
-      return 'M' + a.x + ',' + a.y + ' Q' + cx + ',' + cy + ' ' + b.x + ',' + b.y;
+      return 'M' + a.x.toFixed(1) + ',' + a.y.toFixed(1) + ' Q' + cx.toFixed(1) + ',' + cy.toFixed(1) + ' ' + b.x.toFixed(1) + ',' + b.y.toFixed(1);
     }
 
     staticLines.forEach(function (line) {
-      var a = pointsById[line.dataset.from];
-      var b = pointsById[line.dataset.to];
+      var a = pointGeo[line.dataset.from];
+      var b = pointGeo[line.dataset.to];
       if (!a || !b) { return; }
-      line.setAttribute('d', curvedPath(pointPos(a), pointPos(b)));
+      line.setAttribute('d', curvedPath(a, b));
     });
+
+    // Country borders: fetched once from a real GeoJSON file and run
+    // through the exact same project() as the points above, so the borders
+    // and the dots always agree on where the map actually is.
+    var countryPathsByIso = {};
+    var activeIso = null;
+
+    function ringToPath(ring) {
+      var d = '';
+      for (var i = 0; i < ring.length; i++) {
+        var p = project(ring[i][0], ring[i][1]);
+        d += (i === 0 ? 'M' : 'L') + p.x.toFixed(1) + ',' + p.y.toFixed(1) + ' ';
+      }
+      return d + 'Z';
+    }
+
+    function geometryToPath(geometry) {
+      if (geometry.type === 'Polygon') {
+        return geometry.coordinates.map(ringToPath).join(' ');
+      }
+      if (geometry.type === 'MultiPolygon') {
+        return geometry.coordinates.map(function (poly) {
+          return poly.map(ringToPath).join(' ');
+        }).join(' ');
+      }
+      return '';
+    }
+
+    function applyCountryHighlight() {
+      Object.keys(countryPathsByIso).forEach(function (iso) {
+        countryPathsByIso[iso].classList.toggle('is-highlighted', iso === activeIso);
+      });
+    }
+
+    if (frame.dataset.bordersUrl) {
+      fetch(frame.dataset.bordersUrl)
+        .then(function (res) { return res.json(); })
+        .then(function (geo) {
+          var svgNS = 'http://www.w3.org/2000/svg';
+          geo.features.forEach(function (feature) {
+            var d = geometryToPath(feature.geometry);
+            if (!d) { return; }
+            var path = document.createElementNS(svgNS, 'path');
+            path.setAttribute('d', d);
+            path.setAttribute('class', 'hero-map-country');
+            path.setAttribute('vector-effect', 'non-scaling-stroke');
+            countriesGroup.appendChild(path);
+            var iso = feature.properties && feature.properties.iso_a2;
+            if (iso) { countryPathsByIso[iso] = path; }
+          });
+          applyCountryHighlight();
+        })
+        .catch(function () { /* borders are a decorative backdrop - map still works without them */ });
+    }
 
     var FLAG_STRIPES = {
       nl: ['#AE1C28', '#fff', '#21468B'],
@@ -489,7 +578,9 @@
 
     var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Click: persistent highlight on the location and its connections.
+    // Click: persistent highlight on the location, its connections, and the
+    // real country polygon it sits inside (Amsterdam -> Netherlands lights
+    // up, nothing is enlarged or moved to fake the connection).
     function setActive(id) {
       points.forEach(function (p) {
         var active = p.dataset.id === id;
@@ -500,6 +591,10 @@
         var connected = line.dataset.from === id || line.dataset.to === id;
         line.classList.toggle('is-active', connected);
       });
+      frame.classList.toggle('has-active', id !== null);
+      var activePoint = id !== null ? pointsById[id] : null;
+      activeIso = activePoint ? activePoint.dataset.flag.toUpperCase() : null;
+      applyCountryHighlight();
     }
 
     // Hover: brighten the connections touching this location and fade the
@@ -532,7 +627,7 @@
       if (!d) { return; }
       var dur = 2.2 + Math.random() * 0.8;
       var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('r', '0.7');
+      circle.setAttribute('r', (VIEW_W * 0.007).toFixed(1));
       circle.setAttribute('class', 'hero-network-pulse-dot');
       var anim = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
       anim.setAttribute('dur', dur.toFixed(1) + 's');
