@@ -715,9 +715,9 @@
 
     window.setInterval(tickParticles, 33);
 
-    // A short burst (1 -> 2 -> 4 -> 6-8 concurrent particles) reads as the
+    // A short, sparse burst (1 -> 2 -> 3 concurrent particles) reads as the
     // signal waking up and spreading out from the newly selected server,
-    // then settles into a calm, steady trickle for as long as it stays
+    // then settles into a calm, sparse trickle for as long as it stays
     // selected. Switching servers just stops new spawns from the old one -
     // particles already in flight finish their own trip, so the handoff
     // reads as a smooth fade rather than a hard cut.
@@ -729,9 +729,8 @@
 
       [
         { at: 0, count: 1 },
-        { at: 150, count: 1 },
-        { at: 300, count: 2 },
-        { at: 450, count: 2 + Math.floor(Math.random() * 3) }
+        { at: 200, count: 1 },
+        { at: 450, count: 1 }
       ].forEach(function (step) {
         signalTimers.push(window.setTimeout(function () {
           for (var i = 0; i < step.count; i++) {
@@ -747,7 +746,7 @@
       signalTimers.push(window.setTimeout(function () {
         signalTimers.push(window.setInterval(function () {
           spawnSignalParticle(sourceId, nextNeighbor(sourceId, neighbors));
-        }, 380 + Math.random() * 140));
+        }, 850 + Math.random() * 300));
       }, 650));
     }
 
