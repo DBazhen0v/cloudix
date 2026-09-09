@@ -682,7 +682,7 @@
       if (!geom) { return; }
       var start = geom.reverse ? geom.b : geom.a;
       var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('r', (VIEW_W * 0.0055).toFixed(1));
+      circle.setAttribute('r', (VIEW_W * 0.0038).toFixed(1));
       circle.setAttribute('class', 'hero-network-pulse-dot');
       circle.setAttribute('filter', 'url(#heroNetworkGlow)');
       circle.setAttribute('cx', start.x.toFixed(1));
@@ -692,7 +692,7 @@
         circle: circle,
         geom: geom,
         startedAt: performance.now(),
-        duration: (1.5 + Math.random() * 0.6) * 1000
+        duration: (2.4 + Math.random() * 0.9) * 1000
       });
     }
 
