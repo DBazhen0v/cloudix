@@ -463,16 +463,30 @@
       p.style.setProperty('--ny', (geo.y / VIEW_H * 100).toFixed(2));
     });
 
-    function curvedPath(a, b) {
+    // Shared control point for the quadratic curve between two map points -
+    // used both to draw a connection line's 'd' and (via bezierPoint below)
+    // to place a signal particle at any progress along that same curve.
+    function curveControl(a, b) {
       var mx = (a.x + b.x) / 2;
       var my = (a.y + b.y) / 2;
       var dx = b.x - a.x;
       var dy = b.y - a.y;
       var len = Math.sqrt(dx * dx + dy * dy) || 1;
       var bend = Math.min(len * 0.14, VIEW_W * 0.06);
-      var cx = mx + (-dy / len) * bend;
-      var cy = my + (dx / len) * bend;
-      return 'M' + a.x.toFixed(1) + ',' + a.y.toFixed(1) + ' Q' + cx.toFixed(1) + ',' + cy.toFixed(1) + ' ' + b.x.toFixed(1) + ',' + b.y.toFixed(1);
+      return { x: mx + (-dy / len) * bend, y: my + (dx / len) * bend };
+    }
+
+    function curvedPath(a, b) {
+      var c = curveControl(a, b);
+      return 'M' + a.x.toFixed(1) + ',' + a.y.toFixed(1) + ' Q' + c.x.toFixed(1) + ',' + c.y.toFixed(1) + ' ' + b.x.toFixed(1) + ',' + b.y.toFixed(1);
+    }
+
+    function bezierPoint(a, c, b, t) {
+      var mt = 1 - t;
+      return {
+        x: mt * mt * a.x + 2 * mt * t * c.x + t * t * b.x,
+        y: mt * mt * a.y + 2 * mt * t * c.y + t * t * b.y
+      };
     }
 
     staticLines.forEach(function (line) {
@@ -595,6 +609,7 @@
       var activePoint = id !== null ? pointsById[id] : null;
       activeIso = activePoint ? activePoint.dataset.flag.toUpperCase() : null;
       applyCountryHighlight();
+      if (id !== null) { startSignals(id); } else { stopSignals(); }
     }
 
     // Hover: brighten the connections touching this location and fade the
@@ -617,32 +632,123 @@
       window.setTimeout(function () { point.classList.remove('is-rippling'); }, 700);
     }
 
-    // A single small pulse travels a random connection every few seconds,
-    // independent of hover/click, so the map reads as a live network rather
-    // than a static illustration.
-    function spawnAmbientPulse() {
-      if (!staticLines.length) { return; }
-      var line = staticLines[Math.floor(Math.random() * staticLines.length)];
-      var d = line.getAttribute('d');
-      if (!d) { return; }
-      var dur = 2.2 + Math.random() * 0.8;
-      var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('r', (VIEW_W * 0.007).toFixed(1));
-      circle.setAttribute('class', 'hero-network-pulse-dot');
-      var anim = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
-      anim.setAttribute('dur', dur.toFixed(1) + 's');
-      anim.setAttribute('repeatCount', '1');
-      anim.setAttribute('path', d);
-      circle.appendChild(anim);
-      pulseGroup.appendChild(circle);
-      window.setTimeout(function () {
-        if (circle.parentNode) { circle.parentNode.removeChild(circle); }
-      }, dur * 1000 + 150);
+    // Signal propagation: small glowing particles that travel along the
+    // real connection paths from whichever server is currently active out
+    // to each of its direct neighbors - a lightweight particle spawner
+    // (source, target, delay, speed) rather than fixed, hand-placed dots.
+    // Each static line has ONE fixed curve (drawn from-> to); a particle
+    // going the other way (to -> from) must ride that exact same curve
+    // backwards, not a freshly-computed one, or it visibly drifts off the
+    // line whenever the reversed direction bends its control point to the
+    // opposite side.
+    var neighborsById = {};
+    var lineGeomByPair = {};
+    staticLines.forEach(function (line) {
+      var from = line.dataset.from, to = line.dataset.to;
+      var a = pointGeo[from], b = pointGeo[to];
+      if (!a || !b) { return; }
+      (neighborsById[from] = neighborsById[from] || []).push(to);
+      (neighborsById[to] = neighborsById[to] || []).push(from);
+      var c = curveControl(a, b);
+      lineGeomByPair[from + '>' + to] = { a: a, c: c, b: b, reverse: false };
+      lineGeomByPair[to + '>' + from] = { a: a, c: c, b: b, reverse: true };
+    });
+
+    var signalTimers = [];
+    var signalRoundRobin = {};
+
+    function stopSignals() {
+      signalTimers.forEach(function (t) {
+        window.clearTimeout(t);
+        window.clearInterval(t);
+      });
+      signalTimers = [];
     }
 
-    if (!reduceMotion) {
-      window.setTimeout(spawnAmbientPulse, 900);
-      window.setInterval(spawnAmbientPulse, 3200);
+    function nextNeighbor(sourceId, neighbors) {
+      var i = signalRoundRobin[sourceId] || 0;
+      signalRoundRobin[sourceId] = i + 1;
+      return neighbors[i % neighbors.length];
+    }
+
+    // Particles are plain circles moved by hand (cx/cy updated on a tick),
+    // not SMIL <animateMotion> - this keeps their motion perfectly in sync
+    // with the same curve math the static lines use, with no dependency on
+    // the browser's SMIL timeline.
+    var activeParticles = [];
+
+    function spawnSignalParticle(sourceId, targetId) {
+      var geom = lineGeomByPair[sourceId + '>' + targetId];
+      if (!geom) { return; }
+      var start = geom.reverse ? geom.b : geom.a;
+      var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('r', (VIEW_W * 0.0055).toFixed(1));
+      circle.setAttribute('class', 'hero-network-pulse-dot');
+      circle.setAttribute('filter', 'url(#heroNetworkGlow)');
+      circle.setAttribute('cx', start.x.toFixed(1));
+      circle.setAttribute('cy', start.y.toFixed(1));
+      pulseGroup.appendChild(circle);
+      activeParticles.push({
+        circle: circle,
+        geom: geom,
+        startedAt: performance.now(),
+        duration: (1.5 + Math.random() * 0.6) * 1000
+      });
+    }
+
+    function tickParticles() {
+      if (!activeParticles.length) { return; }
+      var now = performance.now();
+      activeParticles = activeParticles.filter(function (p) {
+        var t = (now - p.startedAt) / p.duration;
+        if (t >= 1) {
+          if (p.circle.parentNode) { p.circle.parentNode.removeChild(p.circle); }
+          return false;
+        }
+        var g = p.geom;
+        var pos = bezierPoint(g.a, g.c, g.b, g.reverse ? 1 - t : t);
+        p.circle.setAttribute('cx', pos.x.toFixed(1));
+        p.circle.setAttribute('cy', pos.y.toFixed(1));
+        return true;
+      });
+    }
+
+    window.setInterval(tickParticles, 33);
+
+    // A short burst (1 -> 2 -> 4 -> 6-8 concurrent particles) reads as the
+    // signal waking up and spreading out from the newly selected server,
+    // then settles into a calm, steady trickle for as long as it stays
+    // selected. Switching servers just stops new spawns from the old one -
+    // particles already in flight finish their own trip, so the handoff
+    // reads as a smooth fade rather than a hard cut.
+    function startSignals(sourceId) {
+      stopSignals();
+      if (reduceMotion) { return; }
+      var neighbors = neighborsById[sourceId];
+      if (!neighbors || !neighbors.length) { return; }
+
+      [
+        { at: 0, count: 1 },
+        { at: 150, count: 1 },
+        { at: 300, count: 2 },
+        { at: 450, count: 2 + Math.floor(Math.random() * 3) }
+      ].forEach(function (step) {
+        signalTimers.push(window.setTimeout(function () {
+          for (var i = 0; i < step.count; i++) {
+            (function (target, offset) {
+              signalTimers.push(window.setTimeout(function () {
+                spawnSignalParticle(sourceId, target);
+              }, offset));
+            })(nextNeighbor(sourceId, neighbors), i * 45);
+          }
+        }, step.at));
+      });
+
+      signalTimers.push(window.setTimeout(function () {
+        signalTimers.push(window.setInterval(function () {
+          spawnSignalParticle(sourceId, nextNeighbor(sourceId, neighbors));
+        }, 380 + Math.random() * 140));
+      }, 650));
     }
 
     function showCard(point) {
