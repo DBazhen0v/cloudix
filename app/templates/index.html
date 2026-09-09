@@ -102,6 +102,37 @@
   </div>
 </section>
 
+{% set online_location = server_locations | selectattr('status', 'equalto', 'online') | list | first %}
+<section class="network-status">
+  <div class="network-status-inner">
+    <div class="network-status-badge">
+      <span class="network-status-dot"></span>
+      <span>All systems operational</span>
+    </div>
+    <div class="network-status-stats">
+      <div class="network-status-stat">
+        <b>{{ server_locations|length }}</b>
+        <span>Locations</span>
+      </div>
+      {% if online_location %}
+      <div class="network-status-stat">
+        <b>{{ online_location.ping }}</b>
+        <span>Ping</span>
+      </div>
+      <div class="network-status-stat">
+        <b>{{ online_location.uptime }}</b>
+        <span>Uptime</span>
+      </div>
+      {% endif %}
+      <div class="network-status-stat">
+        <b>0</b>
+        <span>Incidents</span>
+      </div>
+    </div>
+    <span class="network-status-updated">Updated just now</span>
+  </div>
+</section>
+
 <section class="trust-strip">
   <h2 class="section-eyebrow">Всё необходимое для запуска</h2>
   <div class="trust-grid">
@@ -691,9 +722,21 @@
       activeParticles.push({
         circle: circle,
         geom: geom,
+        targetId: targetId,
         startedAt: performance.now(),
         duration: (2.4 + Math.random() * 0.9) * 1000
       });
+    }
+
+    // A brief brightening of the arriving point's dot/glow - just enough to
+    // read as "the signal landed", not a new flashy effect on top.
+    function flashArrival(targetId) {
+      var point = pointsById[targetId];
+      if (!point) { return; }
+      point.classList.remove('is-flashing');
+      void point.offsetWidth;
+      point.classList.add('is-flashing');
+      window.setTimeout(function () { point.classList.remove('is-flashing'); }, 520);
     }
 
     function tickParticles() {
@@ -703,6 +746,7 @@
         var t = (now - p.startedAt) / p.duration;
         if (t >= 1) {
           if (p.circle.parentNode) { p.circle.parentNode.removeChild(p.circle); }
+          flashArrival(p.targetId);
           return false;
         }
         var g = p.geom;
