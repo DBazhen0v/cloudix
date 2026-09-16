@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_icons.html" import icon_bolt, icon_shield, icon_wrench, icon_headset, icon_disk, icon_bot, icon_globe, icon_cube, icon_check_circle, icon_card, icon_crypto, icon_transfer, icon_arrow_right, icon_close %}
+{% from "_icons.html" import icon_bolt, icon_shield, icon_wrench, icon_headset, icon_disk, icon_bot, icon_globe, icon_cube, icon_check_circle, icon_card, icon_crypto, icon_transfer, icon_arrow_right, icon_close, icon_telegram, icon_lock, icon_ram, icon_cpu, icon_database, icon_network, icon_backup %}
 
 {% block title %}Cloudex — серверы под ключ{% endblock %}
 
@@ -306,7 +306,25 @@
           {% set plan_specs = plan["specs"].split(",") %}
           <ul class="plan-features">
             {% for feature in plan_specs %}
-            <li class="{% if loop.index0 > 0 and 'поддомен' in plan_specs[loop.index0 - 1] %}plan-feature-divider{% endif %}">{{ feature.strip() }}</li>
+            {% set f = feature.strip() %}
+            <li class="{% if loop.index0 > 0 and 'поддомен' in plan_specs[loop.index0 - 1] %}plan-feature-divider{% endif %}">
+              <span class="plan-feature-icon">
+                {%- if 'RAM' in f %}{{ icon_ram(16) }}
+                {%- elif 'vCPU' in f or 'CPU' in f %}{{ icon_cpu(16) }}
+                {%- elif 'NVMe' in f or 'SSD' in f %}{{ icon_disk(16) }}
+                {%- elif 'MySQL' in f %}{{ icon_database(16) }}
+                {%- elif 'Telegram' in f %}{{ icon_telegram(16) }}
+                {%- elif 'Gbit' in f or 'Network' in f or 'порт' in f.lower() %}{{ icon_network(16) }}
+                {%- elif 'Бэкап' in f %}{{ icon_backup(16) }}
+                {%- elif 'DDoS' in f or 'Защита' in f %}{{ icon_shield(16) }}
+                {%- elif 'поддомен' in f %}{{ icon_globe(16) }}
+                {%- elif 'SSL' in f %}{{ icon_lock(16) }}
+                {%- elif 'поддержка' in f.lower() %}{{ icon_headset(16) }}
+                {%- else %}{{ icon_check_circle(16) }}
+                {%- endif %}
+              </span>
+              <span class="plan-feature-text">{{ f }}</span>
+            </li>
             {% endfor %}
           </ul>
           <button

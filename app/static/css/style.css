@@ -1350,8 +1350,10 @@ section:last-of-type {
 }
 
 .plan-features li {
-  padding: 0.4rem 0 0.4rem 1.5rem;
-  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.4rem 0;
   color: var(--text);
   font-size: 0.9rem;
 }
@@ -1362,15 +1364,15 @@ section:last-of-type {
   border-top: 1px solid var(--border-strong);
 }
 
-.plan-features li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.75rem;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
+.plan-feature-icon {
+  display: flex;
+  flex-shrink: 0;
+  color: var(--accent);
+  margin-top: 0.1rem;
+}
+
+.plan-feature-text {
+  flex: 1;
 }
 
 /* Buttons */
