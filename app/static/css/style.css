@@ -1354,11 +1354,12 @@ section:last-of-type {
   position: relative;
   color: var(--text);
   font-size: 0.9rem;
-  border-top: 1px solid var(--border);
 }
 
-.plan-features li:first-child {
-  border-top: none;
+.plan-features li.plan-feature-divider {
+  margin-top: 0.4rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border-strong);
 }
 
 .plan-features li::before {
