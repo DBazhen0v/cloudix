@@ -304,10 +304,14 @@
           <h4 class="plan-card-name">{{ plan["name"] }}</h4>
           <p class="plan-card-price">{{ plan["price"] }}</p>
           {% set plan_specs = plan["specs"].split(",") %}
+          {% set ns = namespace(in_resource_prefix=true) %}
           <ul class="plan-features">
             {% for feature in plan_specs %}
             {% set f = feature.strip() %}
-            <li class="{% if loop.index0 > 0 and 'поддомен' in plan_specs[loop.index0 - 1] %}plan-feature-divider{% endif %}">
+            {% set is_resource = 'RAM' in f or 'vCPU' in f or 'CPU' in f or 'SSD' in f or 'NVMe' in f or 'поддомен' in f or 'порт' in f.lower() %}
+            {% set show_divider = loop.index0 > 0 and ns.in_resource_prefix and not is_resource %}
+            {% if not is_resource %}{% set ns.in_resource_prefix = false %}{% endif %}
+            <li class="{% if show_divider %}plan-feature-divider{% endif %}">
               <span class="plan-feature-icon">
                 {%- if 'RAM' in f %}{{ icon_ram(16) }}
                 {%- elif 'vCPU' in f or 'CPU' in f %}{{ icon_cpu(16) }}
