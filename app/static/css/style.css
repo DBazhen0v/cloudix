@@ -1132,6 +1132,14 @@ section:last-of-type {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
 }
 
+.plans-region-panel {
+  transition: opacity 0.18s ease;
+}
+
+.plans-region-panel.panel-fading {
+  opacity: 0;
+}
+
 .plans-region-soon {
   max-width: 560px;
   margin: 0 auto;
@@ -1205,10 +1213,16 @@ section:last-of-type {
 
 .plans-category {
   display: none;
+  opacity: 1;
+  transition: opacity 0.18s ease;
 }
 
 .plans-category.active {
   display: block;
+}
+
+.plans-category.active.panel-fading {
+  opacity: 0;
 }
 
 .plans-carousel {

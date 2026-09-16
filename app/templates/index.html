@@ -991,47 +991,91 @@
 
   })();
 
+  // Cross-fades one panel out and the other in, instead of the instant
+  // show/hide swap browsers do by default - shared by the region tabs and
+  // the category tabs below, since both are a "exactly one of N panels
+  // visible" toggle. Re-checks which panel is actually visible and cancels
+  // any swap still in flight on every call, so clicking a third tab before
+  // a swap finishes can't leave two panels visible at once.
+  function fadePanelSwap(panels, targetEl, isVisible, setVisible, state) {
+    if (state.timeout) {
+      window.clearTimeout(state.timeout);
+      state.timeout = null;
+    }
+    panels.forEach(function (p) { p.classList.remove('panel-fading'); });
+    var current = panels.filter(function (p) { return p !== targetEl; }).find(isVisible);
+    if (isVisible(targetEl) && !current) { return; }
+    if (current) { current.classList.add('panel-fading'); }
+    state.timeout = window.setTimeout(function () {
+      panels.forEach(function (p) {
+        if (p !== targetEl) { setVisible(p, false); }
+      });
+      setVisible(targetEl, true);
+      targetEl.classList.add('panel-fading');
+      void targetEl.offsetWidth;
+      // A short setTimeout (not requestAnimationFrame) guarantees the
+      // opacity:0 state actually commits to a render before flipping back -
+      // too tight a gap here risks the browser coalescing both style
+      // changes into one frame and skipping the transition.
+      state.timeout = window.setTimeout(function () {
+        targetEl.classList.remove('panel-fading');
+        state.timeout = null;
+      }, 20);
+    }, 180);
+  }
+
   (function () {
     var regionTabs = document.querySelectorAll('.plans-region-tab');
     var nlPanel = document.querySelector('.plans-region-panel[data-region-panel="nl"]');
     var soonPanel = document.querySelector('.plans-region-panel[data-region-panel="other"]');
     if (!regionTabs.length) { return; }
 
+    var regionPanels = [nlPanel, soonPanel].filter(Boolean);
+    var regionSwapState = { timeout: null };
+    function isRegionPanelVisible(el) { return !el.hidden; }
+    function setRegionPanelVisible(el, visible) { el.hidden = !visible; }
+
     regionTabs.forEach(function (tab) {
       tab.addEventListener('click', function () {
+        if (tab.classList.contains('active')) { return; }
         regionTabs.forEach(function (t) {
           var active = t === tab;
           t.classList.toggle('active', active);
           t.setAttribute('aria-selected', String(active));
         });
         var isNl = tab.dataset.region === 'nl';
-        if (nlPanel) { nlPanel.hidden = !isNl; }
-        if (soonPanel) { soonPanel.hidden = isNl; }
+        var target = isNl ? nlPanel : soonPanel;
+        fadePanelSwap(regionPanels, target, isRegionPanelVisible, setRegionPanelVisible, regionSwapState);
       });
     });
   })();
 
   (function () {
     var tabs = document.querySelectorAll('.plans-tab');
-    var panels = document.querySelectorAll('.plans-category');
+    var panels = Array.prototype.slice.call(document.querySelectorAll('.plans-category'));
     if (!tabs.length) { return; }
+
+    var categorySwapState = { timeout: null };
+    function isCategoryPanelVisible(el) { return el.classList.contains('active'); }
+    function setCategoryPanelVisible(el, visible) {
+      el.classList.toggle('active', visible);
+      if (visible) {
+        var carousel = el.querySelector('.plans-carousel');
+        if (carousel && carousel.refreshArrows) { carousel.refreshArrows(); }
+      }
+    }
 
     tabs.forEach(function (tab) {
       tab.addEventListener('click', function () {
+        if (tab.classList.contains('active')) { return; }
         var index = tab.dataset.categoryIndex;
         tabs.forEach(function (t) {
           var active = t === tab;
           t.classList.toggle('active', active);
           t.setAttribute('aria-selected', String(active));
         });
-        panels.forEach(function (p) {
-          var active = p.dataset.categoryIndex === index;
-          p.classList.toggle('active', active);
-          if (active) {
-            var carousel = p.querySelector('.plans-carousel');
-            if (carousel && carousel.refreshArrows) { carousel.refreshArrows(); }
-          }
-        });
+        var target = panels.find(function (p) { return p.dataset.categoryIndex === index; });
+        fadePanelSwap(panels, target, isCategoryPanelVisible, setCategoryPanelVisible, categorySwapState);
       });
     });
   })();
