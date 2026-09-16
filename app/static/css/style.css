@@ -275,6 +275,8 @@ section:last-of-type {
   color: var(--muted);
   font-size: 1.1rem;
   max-width: 480px;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .hero-actions {
