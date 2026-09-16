@@ -1980,6 +1980,18 @@ form select:focus {
   min-height: 44px;
   font-size: 0.85rem;
   cursor: not-allowed;
+  text-decoration: none;
+}
+
+a.oauth-btn {
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+a.oauth-btn:hover {
+  border-color: rgba(109, 139, 255, 0.4);
+  background: var(--surface-2);
 }
 
 .nav-logout-form {

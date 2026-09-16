@@ -45,6 +45,7 @@ def inject_globals():
         "user_logged_in": bool(session.get("user_id")),
         "support_telegram_url": current_app.config["SUPPORT_TELEGRAM_URL"],
         "support_email": current_app.config["SUPPORT_EMAIL"],
+        "google_oauth_enabled": current_app.config.get("GOOGLE_OAUTH_CONFIGURED", False),
     }
 
 

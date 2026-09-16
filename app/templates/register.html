@@ -21,6 +21,6 @@
 
     <button type="submit" class="btn btn-full">Создать аккаунт</button>
   </form>
-  {{ auth_oauth_grid() }}
+  {{ auth_oauth_grid(next_url, google_oauth_enabled) }}
 </section>
 {% endblock %}

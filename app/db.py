@@ -33,6 +33,8 @@ CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
+    oauth_provider TEXT,
+    oauth_id TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -195,9 +197,25 @@ SEED_PLANS = [
 ]
 
 
+def _ensure_user_oauth_columns(db):
+    """Add the oauth_provider/oauth_id columns to a users table created
+    before OAuth login existed - CREATE TABLE IF NOT EXISTS is a no-op on
+    an already-existing table, so a fresh SCHEMA definition alone doesn't
+    reach a database that's already been initialized once.
+    """
+    columns = {row["name"] for row in db.execute("PRAGMA table_info(users)").fetchall()}
+    if "oauth_provider" not in columns:
+        db.execute("ALTER TABLE users ADD COLUMN oauth_provider TEXT")
+    if "oauth_id" not in columns:
+        db.execute("ALTER TABLE users ADD COLUMN oauth_id TEXT")
+    db.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_oauth ON users (oauth_provider, oauth_id)")
+    db.commit()
+
+
 def init_db():
     db = get_db()
     db.executescript(SCHEMA)
+    _ensure_user_oauth_columns(db)
 
     count = db.execute("SELECT COUNT(*) AS n FROM plans").fetchone()["n"]
     if count == 0:

@@ -19,6 +19,9 @@ def create_app():
     from . import db
     db.init_app(app)
 
+    from . import oauth
+    oauth.init_app(app)
+
     from . import security
     app.before_request(security.validate_user_session)
 

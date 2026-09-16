@@ -59,6 +59,44 @@ CRYPTO_WALLET_ADDRESS=ваш_адрес_кошелька
 Пока переменная не задана, вместо адреса показывается пометка «адрес ещё
 не подключён».
 
+## Вход через Google
+
+Кнопка «Google» на странице входа/регистрации по умолчанию неактивна
+(«скоро») — реальный вход через Google требует OAuth-приложение в Google
+Cloud Console, которое можете завести только вы сами (нужен ваш Google-
+аккаунт). Код на сайте уже полностью готов, осталось только:
+
+1. Откройте [console.cloud.google.com](https://console.cloud.google.com/)
+   → создайте проект (или выберите существующий).
+2. **APIs & Services → OAuth consent screen** — заполните название
+   приложения, email поддержки; тип пользователей можно оставить External.
+3. **APIs & Services → Credentials → Create Credentials → OAuth client ID**
+   → тип **Web application**.
+4. В **Authorized JavaScript origins** добавьте:
+   ```
+   http://127.0.0.1:5000
+   https://ваш-домен-на-render.onrender.com
+   ```
+5. В **Authorized redirect URIs** добавьте (обязательно с `/google/callback`,
+   без `/auth`):
+   ```
+   http://127.0.0.1:5000/google/callback
+   https://ваш-домен-на-render.onrender.com/google/callback
+   ```
+6. Google покажет **Client ID** и **Client secret** — впишите их в `.env`
+   локально и в Environment на Render:
+   ```
+   GOOGLE_CLIENT_ID=...
+   GOOGLE_CLIENT_SECRET=...
+   ```
+7. Перезапустите сервер (или передеплойте на Render) — кнопка «Google»
+   сама станет активной, как только обе переменные заданы. Пока их нет,
+   кнопка честно остаётся неактивной вместо ведущей в никуда ссылки.
+
+Если email из Google совпадает с уже зарегистрированным по паролю
+аккаунтом — вход через Google просто привязывается к этому же аккаунту
+(Google уже подтвердил владение почтой), новый дубль не создаётся.
+
 ## Как сейчас устроена выдача сервера и почему
 
 Реальной автоматизации (подключения к VPS/панели вроде Pterodactyl) пока

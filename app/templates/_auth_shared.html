@@ -26,11 +26,15 @@
 </div>
 {% endmacro %}
 
-{% macro auth_oauth_grid() %}
+{% macro auth_oauth_grid(next_url='', google_enabled=false) %}
 <div class="auth-divider"><span>или</span></div>
 <div class="oauth-grid">
   <button type="button" class="oauth-btn" disabled>Discord<span class="soon-badge">скоро</span></button>
+  {% if google_enabled %}
+  <a href="{{ url_for('auth.google_login', next=next_url) }}" class="oauth-btn">Google</a>
+  {% else %}
   <button type="button" class="oauth-btn" disabled>Google<span class="soon-badge">скоро</span></button>
+  {% endif %}
   <button type="button" class="oauth-btn" disabled>GitHub<span class="soon-badge">скоро</span></button>
   <button type="button" class="oauth-btn" disabled>Яндекс<span class="soon-badge">скоро</span></button>
 </div>
