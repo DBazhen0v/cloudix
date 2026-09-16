@@ -102,37 +102,6 @@
   </div>
 </section>
 
-{% set online_location = server_locations | selectattr('status', 'equalto', 'online') | list | first %}
-<section class="network-status">
-  <div class="network-status-inner">
-    <div class="network-status-badge">
-      <span class="network-status-dot"></span>
-      <span>All systems operational</span>
-    </div>
-    <div class="network-status-stats">
-      <div class="network-status-stat">
-        <b>{{ server_locations|length }}</b>
-        <span>Locations</span>
-      </div>
-      {% if online_location %}
-      <div class="network-status-stat">
-        <b>{{ online_location.ping }}</b>
-        <span>Ping</span>
-      </div>
-      <div class="network-status-stat">
-        <b>{{ online_location.uptime }}</b>
-        <span>Uptime</span>
-      </div>
-      {% endif %}
-      <div class="network-status-stat">
-        <b>0</b>
-        <span>Incidents</span>
-      </div>
-    </div>
-    <span class="network-status-updated">Updated just now</span>
-  </div>
-</section>
-
 <section class="how" id="how">
   <h2 class="section-title">Как это работает</h2>
   <ol class="timeline">
