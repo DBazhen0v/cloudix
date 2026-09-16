@@ -267,6 +267,8 @@ section:last-of-type {
   line-height: 1.12;
   margin: 0 0 1.25rem;
   letter-spacing: -0.02em;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .hero-text p {
