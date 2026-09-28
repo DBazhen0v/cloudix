@@ -44,6 +44,52 @@ html {
   }
 }
 
+/* Intro animation (cinematic reveal on first page load, CSS-only — plays once per document load, no JS trigger) */
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes intro-rise {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes intro-rise-scale {
+    from { opacity: 0; transform: translateY(18px) scale(0.985); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .site-header {
+    animation: intro-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  #main-content {
+    animation: intro-rise-scale 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
+  }
+
+  .site-footer {
+    animation: intro-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+  }
+
+  .hero .eyebrow {
+    animation: intro-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.14s both;
+  }
+
+  .hero-text h1 {
+    animation: intro-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+  }
+
+  .hero-text p {
+    animation: intro-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.32s both;
+  }
+
+  .hero-actions {
+    animation: intro-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.42s both;
+  }
+
+  .hero-visual {
+    animation: intro-rise-scale 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.48s both;
+  }
+}
+
 /* Scroll-reveal (progressive enhancement — JS adds .reveal-init, see base.html) */
 
 .reveal-init {
