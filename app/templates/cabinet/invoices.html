@@ -1,0 +1,29 @@
+{% extends "cabinet/_layout.html" %}
+
+{% block title %}Счета{% endblock %}
+{% block dashboard_title %}Счета{% endblock %}
+
+{% block dashboard_content %}
+{% if orders %}
+<div class="table-scroll">
+<table class="orders-table">
+  <thead>
+    <tr><th>№ счёта</th><th>Дата</th><th>Заказ</th><th>Сумма</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for o in orders %}
+    <tr>
+      <td>№{{ o.id }}</td>
+      <td>{{ o.paid_at }}</td>
+      <td>{{ o.plan_name }}</td>
+      <td>{{ o.amount }} {{ o.currency }}</td>
+      <td><a href="{{ url_for('cabinet.invoice_detail', order_id=o.id) }}">Открыть</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>Оплаченных счетов пока нет.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "cabinet/_layout.html" %}
+
+{% block title %}Заказы{% endblock %}
+{% block dashboard_title %}Заказы{% endblock %}
+
+{% block dashboard_content %}
+{% if orders %}
+<div class="table-scroll">
+<table class="orders-table">
+  <thead>
+    <tr><th>№</th><th>Дата</th><th>Тариф</th><th>Сумма</th><th>Статус</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for o in orders %}
+    <tr>
+      <td>№{{ o.id }}</td>
+      <td>{{ o.created_at }}</td>
+      <td>{{ o.plan_name }}</td>
+      <td>{{ o.amount }} {{ o.currency }}</td>
+      <td><span class="badge badge-{{ o.status }}">{{ order_statuses.get(o.status, o.status) }}</span></td>
+      <td><a href="{{ url_for('cabinet.order_detail', order_id=o.id) }}">Подробнее</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>У вас пока нет заказов. <a href="{{ url_for('shop.index') }}#plans">Выбрать тариф</a>.</p>
+{% endif %}
+{% endblock %}

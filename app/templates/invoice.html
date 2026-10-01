@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Счёт №{{ order.id }}{% endblock %}
+
+{% block content %}
+<section class="policy invoice-page">
+  <div class="policy-body invoice-body">
+    <h1>Счёт №{{ order.id }}</h1>
+    <p class="policy-updated">Дата оплаты: {{ order.paid_at }}</p>
+
+    <table class="invoice-table">
+      <tbody>
+        <tr><th>Тариф</th><td>{{ order.plan_name }}</td></tr>
+        <tr><th>Сумма</th><td>{{ order.amount }} {{ order.currency }}</td></tr>
+        {% if order.payment_method %}<tr><th>Способ оплаты</th><td>{{ order.payment_method }}</td></tr>{% endif %}
+        <tr><th>Статус заказа</th><td>{{ order.status }}</td></tr>
+        <tr><th>Дата заказа</th><td>{{ order.created_at }}</td></tr>
+      </tbody>
+    </table>
+
+    <p class="invoice-print-hint">Чтобы сохранить счёт — используйте печать страницы (Ctrl+P → «Сохранить как PDF»).</p>
+    <a href="{{ url_for('cabinet.invoices') }}" class="btn btn-secondary invoice-back-link">Назад к счетам</a>
+  </div>
+</section>
+{% endblock %}

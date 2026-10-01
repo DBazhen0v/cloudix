@@ -32,4 +32,7 @@ def create_app():
     from . import cabinet
     app.register_blueprint(cabinet.bp)
 
+    from . import admin
+    app.register_blueprint(admin.bp)
+
     return app

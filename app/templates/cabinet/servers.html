@@ -1,0 +1,62 @@
+{% extends "cabinet/_layout.html" %}
+
+{% block title %}Мои сервера{% endblock %}
+{% block dashboard_title %}Мои сервера{% endblock %}
+
+{% block dashboard_content %}
+{% if servers %}
+<div class="cabinet-grid">
+  {% for s in servers %}
+  <article class="cabinet-card">
+    <div class="cabinet-card-head">
+      <h3>{{ s.name }}</h3>
+      <span class="badge badge-{{ s.status }}">{{ server_statuses.get(s.status, s.status) }}</span>
+    </div>
+
+    <p class="cabinet-meta">Тариф: {{ s.plan.name if s.plan else "—" }}</p>
+    {% if s.hostname %}<p class="cabinet-meta">Хостнейм: {{ s.hostname }}</p>{% endif %}
+    {% if s.ipv4 %}<p class="cabinet-meta">IPv4: {{ s.ipv4 }}</p>{% endif %}
+    {% if s.ipv6 %}<p class="cabinet-meta">IPv6: {{ s.ipv6 }}</p>{% endif %}
+    {% if s.location %}<p class="cabinet-meta">Локация: {{ s.location }}</p>{% endif %}
+    {% if s.operating_system %}<p class="cabinet-meta">ОС: {{ s.operating_system }}</p>{% endif %}
+    <p class="cabinet-meta">Создан: {{ s.created_at }}</p>
+    {% if s.subscription %}
+    <p class="cabinet-meta">Подписка: <span class="badge badge-{{ s.subscription.status }}">{{ subscription_statuses.get(s.subscription.status, s.subscription.status) }}</span></p>
+    {% endif %}
+    {% if s.connection_info %}
+    <p class="cabinet-connection">{{ s.connection_info }}</p>
+    {% endif %}
+
+    <div class="cabinet-actions">
+      <form method="post" action="{{ url_for('cabinet.request_action') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="server_id" value="{{ s.id }}">
+        <input type="hidden" name="action" value="reboot">
+        <button type="submit" class="btn btn-small btn-secondary">Перезагрузить</button>
+      </form>
+      <form method="post" action="{{ url_for('cabinet.request_action') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <input type="hidden" name="server_id" value="{{ s.id }}">
+        <input type="hidden" name="action" value="renew">
+        <button type="submit" class="btn btn-small btn-secondary">Продлить</button>
+      </form>
+    </div>
+
+    <form method="post" action="{{ url_for('cabinet.request_action') }}" class="cabinet-change-plan">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="server_id" value="{{ s.id }}">
+      <input type="hidden" name="action" value="change_plan">
+      <select name="details" required>
+        {% for plan in plans %}
+        <option value="{{ plan.id }}" {% if plan.id == s.plan_id %}selected{% endif %}>{{ plan.category }} — {{ plan.name }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-small">Сменить тариф</button>
+    </form>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<p>У вас пока нет серверов. <a href="{{ url_for('shop.index') }}#plans">Выбрать тариф</a>.</p>
+{% endif %}
+{% endblock %}

@@ -100,3 +100,46 @@ ACTIONS = {
     "renew": "Продление",
     "change_plan": "Смена тарифа",
 }
+
+ORDER_STATUSES = {
+    "pending": "Ожидает оплаты",
+    "paid": "Оплачен",
+    "provisioning": "Настраивается",
+    "completed": "Выполнен",
+    "cancelled": "Отменён",
+    "refunded": "Возврат",
+    "failed": "Ошибка",
+}
+
+SERVER_STATUSES = {
+    "provisioning": "Настраивается",
+    "active": "Активен",
+    "suspended": "Приостановлен",
+    "reinstalling": "Переустановка",
+    "stopping": "Остановка",
+    "stopped": "Остановлен",
+    "terminated": "Удалён",
+    "error": "Ошибка",
+}
+
+SUBSCRIPTION_STATUSES = {
+    "active": "Активна",
+    "past_due": "Просрочена оплата",
+    "cancelled": "Отменена",
+    "expired": "Истекла",
+    "suspended": "Приостановлена",
+}
+
+TICKET_STATUSES = {
+    "open": "Открыт",
+    "in_progress": "В работе",
+    "waiting_for_customer": "Ждём ответа",
+    "resolved": "Решён",
+    "closed": "Закрыт",
+}
+
+TICKET_PRIORITIES = {
+    "low": "Низкий",
+    "normal": "Обычный",
+    "high": "Высокий",
+}

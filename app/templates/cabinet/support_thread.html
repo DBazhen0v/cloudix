@@ -1,0 +1,31 @@
+{% extends "cabinet/_layout.html" %}
+
+{% block title %}Обращение №{{ ticket.id }}{% endblock %}
+{% block dashboard_title %}Обращение №{{ ticket.id }}: {{ ticket.subject }}{% endblock %}
+
+{% block dashboard_content %}
+<p class="cabinet-meta">
+  Статус: <span class="badge badge-{{ ticket.status }}">{{ ticket_statuses.get(ticket.status, ticket.status) }}</span>
+  · Приоритет: {{ ticket_priorities.get(ticket.priority, ticket.priority) }}
+</p>
+
+<div class="ticket-thread">
+  {% for m in messages %}
+  <div class="ticket-message ticket-message-{{ m.author_type }}">
+    <span class="ticket-message-meta">{{ "Вы" if m.author_type == "user" else "Поддержка" }} · {{ m.created_at }}</span>
+    {{ m.body }}
+  </div>
+  {% endfor %}
+</div>
+
+{% if ticket.status != "closed" %}
+<form method="post" action="{{ url_for('cabinet.support_reply', ticket_id=ticket.id) }}" class="ticket-reply-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label for="message" class="sr-only">Сообщение</label>
+  <textarea id="message" name="message" rows="3" placeholder="Напишите сообщение..." required></textarea>
+  <button type="submit" class="btn btn-small">Отправить</button>
+</form>
+{% else %}
+<p class="cabinet-meta">Обращение закрыто.</p>
+{% endif %}
+{% endblock %}

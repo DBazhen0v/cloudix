@@ -1,0 +1,21 @@
+{% extends "cabinet/_layout.html" %}
+
+{% block title %}Уведомления{% endblock %}
+{% block dashboard_title %}Уведомления{% endblock %}
+
+{% block dashboard_content %}
+{% if notifications %}
+<ul class="notification-list">
+  {% for n in notifications %}
+  <li class="notification-item">
+    <strong>{{ n.title }}</strong>
+    {% if n.body %}<p>{{ n.body }}</p>{% endif %}
+    <span class="cabinet-meta">{{ n.created_at }}</span>
+    {% if n.link %}<a href="{{ n.link }}">Перейти</a>{% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>Уведомлений пока нет.</p>
+{% endif %}
+{% endblock %}

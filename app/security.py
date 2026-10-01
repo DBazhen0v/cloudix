@@ -42,17 +42,7 @@ def admin_login_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
         if not session.get("is_admin"):
-            return redirect(url_for("shop.admin_login"))
-        return view(*args, **kwargs)
-
-    return wrapped
-
-
-def login_required(view):
-    @wraps(view)
-    def wrapped(*args, **kwargs):
-        if not session.get("user_id"):
-            return redirect(url_for("auth.login", next=request.path))
+            return redirect(url_for("admin.admin_login"))
         return view(*args, **kwargs)
 
     return wrapped

@@ -26,12 +26,15 @@ def register():
 
     if request.method == "POST":
         check_csrf_token()
+        name = request.form.get("name", "").strip()
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
         confirm = request.form.get("confirm", "")
         next_url = request.form.get("next", "")
 
-        if not EMAIL_RE.match(email):
+        if not name:
+            flash("Введите имя.", "error")
+        elif not EMAIL_RE.match(email):
             flash("Введите корректный email.", "error")
         elif len(password) < 8:
             flash("Пароль должен быть не короче 8 символов.", "error")
@@ -43,7 +46,7 @@ def register():
             if existing is not None:
                 flash("Этот email уже зарегистрирован.", "error")
             else:
-                user = User(email=email, password_hash=generate_password_hash(password))
+                user = User(name=name, email=email, password_hash=generate_password_hash(password))
                 db.add(user)
                 db.commit()
                 session.clear()
@@ -129,6 +132,7 @@ def google_callback():
             # password-login path can never authenticate this row.
             placeholder_hash = generate_password_hash(secrets.token_urlsafe(32))
             user = User(
+                name=userinfo.get("name") or None,
                 email=email,
                 password_hash=placeholder_hash,
                 oauth_provider="google",

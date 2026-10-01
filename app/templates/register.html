@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_auth_shared.html" import auth_tabs, icon_mail, password_field, auth_oauth_grid %}
+{% from "_auth_shared.html" import auth_tabs, icon_mail, icon_user, password_field, auth_oauth_grid %}
 
 {% block title %}Регистрация{% endblock %}
 
@@ -10,10 +10,16 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <input type="hidden" name="next" value="{{ next_url }}">
 
+    <label for="name">Имя</label>
+    <div class="input-icon">
+      {{ icon_user() }}
+      <input type="text" id="name" name="name" required maxlength="100" autofocus>
+    </div>
+
     <label for="email">Email</label>
     <div class="input-icon">
       {{ icon_mail() }}
-      <input type="email" id="email" name="email" required autofocus>
+      <input type="email" id="email" name="email" required>
     </div>
 
     {{ password_field('password', 'password', 'Пароль', minlength=8) }}

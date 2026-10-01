@@ -8,44 +8,38 @@
 
 {% block content %}
 <section class="admin-header">
-  <h1>Подписки</h1>
-  <form method="post" action="{{ url_for('shop.admin_logout') }}">
+  <h1>Заказы</h1>
+  <form method="post" action="{{ url_for('admin.admin_logout') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <button type="submit" class="btn btn-secondary">Выйти</button>
   </form>
 </section>
 
-{% if subscriptions %}
+{% if orders %}
 <div class="table-scroll">
 <table class="orders-table">
   <thead>
     <tr>
-      <th>Дата</th>
-      <th>Клиент</th>
-      <th>Тариф</th>
-      <th>Оплата</th>
-      <th>Комментарий</th>
-      <th>Статус / доступы / срок</th>
+      <th>№</th><th>Дата</th><th>Клиент</th><th>Тариф</th><th>Сумма</th><th>Оплата</th><th>Статус</th>
     </tr>
   </thead>
   <tbody>
-    {% for s in subscriptions %}
+    {% for o in orders %}
     <tr>
-      <td>{{ s["created_at"] }}</td>
-      <td>{{ s["user_email"] }}</td>
-      <td>{{ s["plan_name"] }}</td>
-      <td>{{ payment_methods.get(s["payment_method"], "—") }}</td>
-      <td>{{ s["contact_note"] or "" }}</td>
+      <td>№{{ o.id }}</td>
+      <td>{{ o.created_at }}</td>
+      <td>{{ o.user.email if o.user else "—" }}</td>
+      <td>{{ o.plan_name }}</td>
+      <td>{{ o.amount }} {{ o.currency }}</td>
+      <td>{{ payment_methods.get(o.payment_method, "—") }}</td>
       <td>
-        <form method="post" action="{{ url_for('shop.admin_update_subscription', subscription_id=s['id']) }}" class="admin-update-form">
+        <form method="post" action="{{ url_for('admin.update_order_status', order_id=o.id) }}" class="admin-update-form">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
           <select name="status">
-            <option value="awaiting_payment" {% if s["status"] == "awaiting_payment" %}selected{% endif %}>Ожидает оплаты</option>
-            <option value="active" {% if s["status"] == "active" %}selected{% endif %}>Активен</option>
-            <option value="suspended" {% if s["status"] == "suspended" %}selected{% endif %}>Приостановлен</option>
+            {% for value, label in order_statuses.items() %}
+            <option value="{{ value }}" {% if o.status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
           </select>
-          <input type="text" name="connection_info" placeholder="IP, логин, пароль..." value="{{ s['connection_info'] or '' }}">
-          <input type="text" name="expires_at" placeholder="Активен до (YYYY-MM-DD)" value="{{ s['expires_at'] or '' }}">
           <button type="submit" class="btn btn-small">Сохранить</button>
         </form>
       </td>
@@ -55,7 +49,52 @@
 </table>
 </div>
 {% else %}
-<p>Подписок пока нет.</p>
+<p>Заказов пока нет.</p>
+{% endif %}
+
+<h2 class="admin-section-title">Серверы</h2>
+{% if servers %}
+<div class="table-scroll">
+<table class="orders-table">
+  <thead>
+    <tr>
+      <th>Заказ</th><th>Клиент</th><th>Название</th><th>Хостнейм</th><th>IPv4</th><th>IPv6</th>
+      <th>Локация</th><th>ОС</th><th>Доступы</th><th>Статус</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in servers %}
+    {% set fid = "server-form-" ~ s.id %}
+    <tr>
+      <td>№{{ s.order_id }}</td>
+      <td>{{ s.user.email if s.user else "—" }}</td>
+      <td>{{ s.name }}</td>
+      <td><input type="text" class="server-field" name="hostname" value="{{ s.hostname or '' }}" form="{{ fid }}"></td>
+      <td><input type="text" class="server-field" name="ipv4" value="{{ s.ipv4 or '' }}" form="{{ fid }}"></td>
+      <td><input type="text" class="server-field" name="ipv6" value="{{ s.ipv6 or '' }}" form="{{ fid }}"></td>
+      <td><input type="text" class="server-field" name="location" value="{{ s.location or '' }}" form="{{ fid }}"></td>
+      <td><input type="text" class="server-field" name="operating_system" value="{{ s.operating_system or '' }}" form="{{ fid }}"></td>
+      <td><input type="text" class="server-field" name="connection_info" placeholder="логин, пароль..." value="{{ s.connection_info or '' }}" form="{{ fid }}"></td>
+      <td>
+        <select name="status" class="server-field" form="{{ fid }}">
+          {% for value, label in server_statuses.items() %}
+          <option value="{{ value }}" {% if s.status == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </td>
+      <td>
+        <form id="{{ fid }}" method="post" action="{{ url_for('admin.update_server', server_id=s.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit" class="btn btn-small">Сохранить</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>Серверов пока нет — появятся после отметки заказа оплаченным.</p>
 {% endif %}
 
 <h2 class="admin-section-title">Заявки на действия</h2>
@@ -63,25 +102,18 @@
 <div class="table-scroll">
 <table class="orders-table">
   <thead>
-    <tr>
-      <th>Дата</th>
-      <th>Клиент</th>
-      <th>Тариф</th>
-      <th>Действие</th>
-      <th>Детали</th>
-      <th></th>
-    </tr>
+    <tr><th>Дата</th><th>Клиент</th><th>Сервер</th><th>Действие</th><th>Детали</th><th></th></tr>
   </thead>
   <tbody>
     {% for a in action_requests %}
     <tr>
-      <td>{{ a["created_at"] }}</td>
-      <td>{{ a["user_email"] }}</td>
-      <td>{{ a["plan_name"] }}</td>
-      <td>{{ a["action"] }}</td>
-      <td>{{ a["details"] or "" }}</td>
+      <td>{{ a.created_at }}</td>
+      <td>{{ a.server.user.email if a.server and a.server.user else "—" }}</td>
+      <td>{{ a.server.name if a.server else "—" }}</td>
+      <td>{{ actions.get(a.action, a.action) }}</td>
+      <td>{{ a.details or "" }}</td>
       <td>
-        <form method="post" action="{{ url_for('shop.admin_complete_action', action_id=a['id']) }}">
+        <form method="post" action="{{ url_for('admin.complete_action', action_id=a.id) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
           <button type="submit" class="btn btn-small btn-secondary">Готово</button>
         </form>
@@ -95,36 +127,27 @@
 <p>Заявок на действия нет.</p>
 {% endif %}
 
-<h2 class="admin-section-title">Сообщения в поддержку</h2>
-{% if support_messages %}
+<h2 class="admin-section-title">Обращения в поддержку</h2>
+{% if tickets %}
 <div class="table-scroll">
 <table class="orders-table">
   <thead>
-    <tr>
-      <th>Дата</th>
-      <th>От кого</th>
-      <th>Сообщение</th>
-      <th></th>
-    </tr>
+    <tr><th>Дата</th><th>От кого</th><th>Тема</th><th>Статус</th><th></th></tr>
   </thead>
   <tbody>
-    {% for m in support_messages %}
+    {% for t in tickets %}
     <tr>
-      <td>{{ m["created_at"] }}</td>
-      <td>{{ m["user_email"] or m["contact"] or "аноним" }}</td>
-      <td>{{ m["message"] }}</td>
-      <td>
-        <form method="post" action="{{ url_for('shop.admin_complete_support_message', message_id=m['id']) }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-          <button type="submit" class="btn btn-small btn-secondary">Готово</button>
-        </form>
-      </td>
+      <td>{{ t.updated_at }}</td>
+      <td>{{ t.user.email if t.user else (t.contact or "аноним") }}</td>
+      <td>{{ t.subject }}</td>
+      <td><span class="badge badge-{{ t.status }}">{{ ticket_statuses.get(t.status, t.status) }}</span></td>
+      <td><a href="{{ url_for('admin.ticket_thread', ticket_id=t.id) }}">Открыть</a></td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
 </div>
 {% else %}
-<p>Сообщений в поддержку нет.</p>
+<p>Открытых обращений нет.</p>
 {% endif %}
 {% endblock %}

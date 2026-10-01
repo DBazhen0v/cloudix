@@ -10,8 +10,6 @@ from flask import (
     session,
     url_for,
 )
-from sqlalchemy import select
-from werkzeug.security import check_password_hash
 
 from .constants import (
     HERO_MAP_BOUNDS,
@@ -23,8 +21,9 @@ from .constants import (
     SERVER_LOCATIONS,
 )
 from .db import get_db
-from .models import ActionRequest, Plan, SupportMessage, Subscription, User
-from .security import admin_login_required, check_csrf_token, get_csrf_token
+from .models import Order, Plan, SupportTicket, TicketMessage
+from .notifications import create_notification
+from .security import check_csrf_token, get_csrf_token
 
 bp = Blueprint("shop", __name__)
 
@@ -107,14 +106,23 @@ def order():
         flash("Выбранный тариф недоступен.", "error")
         return redirect(url_for("shop.index"))
 
-    db.add(
-        Subscription(
-            user_id=session["user_id"],
-            plan_id=plan.id,
-            plan_name=plan.name,
-            contact_note=contact_note or None,
-            payment_method=payment_method,
-        )
+    new_order = Order(
+        user_id=session["user_id"],
+        plan_id=plan.id,
+        plan_name=plan.name,
+        amount=_plan_price_value(plan),
+        contact_note=contact_note or None,
+        payment_method=payment_method,
+    )
+    db.add(new_order)
+    db.flush()
+    create_notification(
+        db,
+        session["user_id"],
+        "order_placed",
+        f"Заказ №{new_order.id} создан",
+        "Ожидает подтверждения оплаты администратором.",
+        link=url_for("cabinet.order_detail", order_id=new_order.id),
     )
     db.commit()
 
@@ -123,7 +131,7 @@ def order():
         "для подтверждения оплаты и настройки.",
         "success",
     )
-    return redirect(url_for("cabinet.index"))
+    return redirect(url_for("cabinet.orders"))
 
 
 @bp.route("/support")
@@ -146,137 +154,28 @@ def support_message():
         return redirect(next_url)
 
     db = get_db()
-    db.add(SupportMessage(user_id=session.get("user_id"), contact=contact or None, message=message))
+    user_id = session.get("user_id")
+
+    ticket = None
+    if user_id:
+        ticket = (
+            db.query(SupportTicket)
+            .filter(SupportTicket.user_id == user_id, SupportTicket.status != "closed")
+            .order_by(SupportTicket.updated_at.desc())
+            .first()
+        )
+
+    if ticket is None:
+        ticket = SupportTicket(
+            user_id=user_id,
+            contact=contact or None,
+            subject=message[:60],
+        )
+        db.add(ticket)
+        db.flush()
+
+    db.add(TicketMessage(ticket_id=ticket.id, author_type="user", author_user_id=user_id, body=message))
     db.commit()
 
     flash("Сообщение отправлено — мы свяжемся с вами.", "success")
     return redirect(next_url)
-
-
-@bp.route("/admin/login", methods=["GET", "POST"])
-def admin_login():
-    if request.method == "POST":
-        check_csrf_token()
-        password = request.form.get("password", "")
-        if check_password_hash(current_app.config["ADMIN_PASSWORD_HASH"], password):
-            session.clear()
-            session["is_admin"] = True
-            return redirect(url_for("shop.admin_dashboard"))
-        flash("Неверный пароль.", "error")
-    return render_template("admin_login.html")
-
-
-@bp.route("/admin/logout", methods=["POST"])
-@admin_login_required
-def admin_logout():
-    check_csrf_token()
-    session.clear()
-    return redirect(url_for("shop.admin_login"))
-
-
-@bp.route("/admin")
-@admin_login_required
-def admin_dashboard():
-    db = get_db()
-    subscriptions = db.execute(
-        select(
-            Subscription.id,
-            Subscription.plan_id,
-            Subscription.plan_name,
-            Subscription.status,
-            Subscription.payment_method,
-            Subscription.contact_note,
-            Subscription.connection_info,
-            Subscription.expires_at,
-            Subscription.created_at,
-            User.email.label("user_email"),
-        )
-        .join(User, User.id == Subscription.user_id)
-        .order_by(Subscription.created_at.desc())
-    ).mappings().all()
-    action_requests = db.execute(
-        select(
-            ActionRequest.id,
-            ActionRequest.action,
-            ActionRequest.details,
-            ActionRequest.created_at,
-            Subscription.plan_name,
-            User.email.label("user_email"),
-        )
-        .join(Subscription, Subscription.id == ActionRequest.subscription_id)
-        .join(User, User.id == Subscription.user_id)
-        .where(ActionRequest.status == "pending")
-        .order_by(ActionRequest.created_at)
-    ).mappings().all()
-    support_messages = db.execute(
-        select(
-            SupportMessage.id,
-            SupportMessage.contact,
-            SupportMessage.message,
-            SupportMessage.created_at,
-            User.email.label("user_email"),
-        )
-        .outerjoin(User, User.id == SupportMessage.user_id)
-        .where(SupportMessage.status == "new")
-        .order_by(SupportMessage.created_at)
-    ).mappings().all()
-    return render_template(
-        "admin_dashboard.html",
-        subscriptions=subscriptions,
-        action_requests=action_requests,
-        support_messages=support_messages,
-        payment_methods=PAYMENT_METHODS,
-    )
-
-
-@bp.route("/admin/subscriptions/<int:subscription_id>", methods=["POST"])
-@admin_login_required
-def admin_update_subscription(subscription_id):
-    check_csrf_token()
-
-    status = request.form.get("status", "")
-    connection_info = request.form.get("connection_info", "").strip()
-    expires_at = request.form.get("expires_at", "").strip()
-
-    if status not in {"awaiting_payment", "active", "suspended"}:
-        flash("Некорректный статус.", "error")
-        return redirect(url_for("shop.admin_dashboard"))
-
-    db = get_db()
-    db.query(Subscription).filter_by(id=subscription_id).update(
-        {
-            "status": status,
-            "connection_info": connection_info or None,
-            "expires_at": expires_at or None,
-        }
-    )
-    db.commit()
-
-    flash("Подписка обновлена.", "success")
-    return redirect(url_for("shop.admin_dashboard"))
-
-
-@bp.route("/admin/action-requests/<int:action_id>/done", methods=["POST"])
-@admin_login_required
-def admin_complete_action(action_id):
-    check_csrf_token()
-
-    db = get_db()
-    db.query(ActionRequest).filter_by(id=action_id).update({"status": "done"})
-    db.commit()
-
-    flash("Заявка отмечена выполненной.", "success")
-    return redirect(url_for("shop.admin_dashboard"))
-
-
-@bp.route("/admin/support-messages/<int:message_id>/done", methods=["POST"])
-@admin_login_required
-def admin_complete_support_message(message_id):
-    check_csrf_token()
-
-    db = get_db()
-    db.query(SupportMessage).filter_by(id=message_id).update({"status": "done"})
-    db.commit()
-
-    flash("Сообщение отмечено обработанным.", "success")
-    return redirect(url_for("shop.admin_dashboard"))

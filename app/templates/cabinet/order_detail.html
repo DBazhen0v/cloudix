@@ -1,0 +1,24 @@
+{% extends "cabinet/_layout.html" %}
+
+{% block title %}Заказ №{{ order.id }}{% endblock %}
+{% block dashboard_title %}Заказ №{{ order.id }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="cabinet-card">
+  <div class="cabinet-card-head">
+    <h3>{{ order.plan_name }}</h3>
+    <span class="badge badge-{{ order.status }}">{{ order_statuses.get(order.status, order.status) }}</span>
+  </div>
+  <p class="cabinet-meta">Дата: {{ order.created_at }}</p>
+  <p class="cabinet-meta">Сумма: {{ order.amount }} {{ order.currency }}</p>
+  {% if order.payment_method %}<p class="cabinet-meta">Способ оплаты: {{ order.payment_method }}</p>{% endif %}
+  {% if order.paid_at %}<p class="cabinet-meta">Оплачен: {{ order.paid_at }}</p>{% endif %}
+  {% if order.contact_note %}<p class="cabinet-meta">Комментарий: {{ order.contact_note }}</p>{% endif %}
+  {% if order.server %}
+  <p class="cabinet-meta">Сервер: <a href="{{ url_for('cabinet.servers') }}">{{ order.server.name }}</a></p>
+  {% endif %}
+  {% if order.paid_at %}
+  <p class="cabinet-meta"><a href="{{ url_for('cabinet.invoice_detail', order_id=order.id) }}">Посмотреть счёт</a></p>
+  {% endif %}
+</div>
+{% endblock %}

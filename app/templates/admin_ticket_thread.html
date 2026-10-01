@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Обращение №{{ ticket.id }}{% endblock %}
+
+{% block nav %}{% endblock %}
+{% block mobile_menu %}{% endblock %}
+{% block support_widget %}{% endblock %}
+
+{% block content %}
+<section class="admin-header">
+  <h1>Обращение №{{ ticket.id }}: {{ ticket.subject }}</h1>
+  <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">К списку</a>
+</section>
+
+<p class="cabinet-meta">От: {{ ticket.user.email if ticket.user else (ticket.contact or "аноним") }}</p>
+
+<div class="ticket-thread">
+  {% for m in messages %}
+  <div class="ticket-message ticket-message-{{ m.author_type }}">
+    <span class="ticket-message-meta">{{ "Клиент" if m.author_type == "user" else "Поддержка" }} · {{ m.created_at }}</span>
+    {{ m.body }}
+  </div>
+  {% endfor %}
+</div>
+
+<form method="post" action="{{ url_for('admin.ticket_reply', ticket_id=ticket.id) }}" class="ticket-reply-form admin-update-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label for="message" class="sr-only">Ответ</label>
+  <textarea id="message" name="message" rows="3" placeholder="Ответ клиенту..."></textarea>
+  <select name="status">
+    {% for value, label in ticket_statuses.items() %}
+    <option value="{{ value }}" {% if ticket.status == value %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <select name="priority">
+    {% for value, label in ticket_priorities.items() %}
+    <option value="{{ value }}" {% if ticket.priority == value %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn btn-small">Сохранить</button>
+</form>
+{% endblock %}

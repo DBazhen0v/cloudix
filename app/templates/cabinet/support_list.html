@@ -1,0 +1,31 @@
+{% extends "cabinet/_layout.html" %}
+
+{% block title %}Поддержка{% endblock %}
+{% block dashboard_title %}Поддержка{% endblock %}
+
+{% block dashboard_content %}
+<p><a href="#" id="dashboard-support-btn" class="btn btn-small">Новое обращение</a></p>
+
+{% if tickets %}
+<div class="table-scroll">
+<table class="orders-table">
+  <thead>
+    <tr><th>№</th><th>Тема</th><th>Статус</th><th>Приоритет</th><th>Обновлено</th></tr>
+  </thead>
+  <tbody>
+    {% for t in tickets %}
+    <tr>
+      <td>№{{ t.id }}</td>
+      <td><a href="{{ url_for('cabinet.support_thread', ticket_id=t.id) }}">{{ t.subject }}</a></td>
+      <td><span class="badge badge-{{ t.status }}">{{ ticket_statuses.get(t.status, t.status) }}</span></td>
+      <td>{{ ticket_priorities.get(t.priority, t.priority) }}</td>
+      <td>{{ t.updated_at }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p>Обращений пока нет.</p>
+{% endif %}
+{% endblock %}
