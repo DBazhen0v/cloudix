@@ -1,8 +1,11 @@
+from pathlib import Path
+
 import click
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from .models import Base, Plan
+from .dburl import get_database_url
+from .models import Plan
 
 engine = None
 Session = None
@@ -169,25 +172,39 @@ def seed_plans():
     db.commit()
 
 
-def init_db():
-    Base.metadata.create_all(engine)
+@click.command("seed-plans")
+def seed_plans_command():
     seed_plans()
+    click.echo("Тарифы синхронизированы.")
 
 
-@click.command("init-db")
-def init_db_command():
-    init_db()
-    click.echo("База данных инициализирована.")
+def run_migrations():
+    """Apply any pending Alembic migrations.
+
+    Render's free-tier disk is ephemeral - the SQLite file is wiped on
+    every redeploy - so the schema has to be (re)created on every boot
+    regardless. Alembic's own version table makes this safe to call on
+    every boot (unlike the old raw executescript): it only applies
+    revisions that haven't already run, so it's a no-op on a DB that's
+    already current (e.g. Postgres in production, un-reset between boots).
+    """
+    from alembic import command
+    from alembic.config import Config
+
+    repo_root = Path(__file__).resolve().parent.parent
+    cfg = Config(str(repo_root / "alembic.ini"))
+    command.upgrade(cfg, "head")
 
 
 def init_app(app):
     global engine, Session
 
-    engine = create_engine(f"sqlite:///{app.config['DATABASE']}")
+    engine = create_engine(get_database_url(instance_path=app.instance_path))
     Session = scoped_session(sessionmaker(bind=engine))
 
     app.teardown_appcontext(lambda exc: Session.remove())
-    app.cli.add_command(init_db_command)
+    app.cli.add_command(seed_plans_command)
 
     with app.app_context():
-        init_db()
+        run_migrations()
+        seed_plans()
