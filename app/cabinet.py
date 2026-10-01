@@ -1,7 +1,9 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, session, url_for
+from sqlalchemy import func, select
 
 from .constants import ACTIONS, PAYMENT_METHODS
 from .db import get_db
+from .models import ActionRequest, Plan, Subscription, User
 from .security import check_csrf_token, login_required
 
 bp = Blueprint("cabinet", __name__, url_prefix="/cabinet")
@@ -11,27 +13,35 @@ bp = Blueprint("cabinet", __name__, url_prefix="/cabinet")
 @login_required
 def index():
     db = get_db()
+    pending_actions = (
+        select(func.count(ActionRequest.id))
+        .where(ActionRequest.subscription_id == Subscription.id, ActionRequest.status == "pending")
+        .correlate(Subscription)
+        .scalar_subquery()
+    )
     subscriptions = db.execute(
-        """
-        SELECT s.*,
-               (SELECT COUNT(*) FROM action_requests a
-                WHERE a.subscription_id = s.id AND a.status = 'pending') AS pending_actions
-        FROM subscriptions s
-        WHERE s.user_id = ?
-        ORDER BY s.created_at DESC
-        """,
-        (session["user_id"],),
-    ).fetchall()
-    plans = db.execute("SELECT * FROM plans WHERE is_active = 1 ORDER BY id").fetchall()
-    user = db.execute(
-        "SELECT email FROM users WHERE id = ?", (session["user_id"],)
-    ).fetchone()
+        select(
+            Subscription.id,
+            Subscription.plan_id,
+            Subscription.plan_name,
+            Subscription.status,
+            Subscription.payment_method,
+            Subscription.connection_info,
+            Subscription.expires_at,
+            Subscription.created_at,
+            pending_actions.label("pending_actions"),
+        )
+        .where(Subscription.user_id == session["user_id"])
+        .order_by(Subscription.created_at.desc())
+    ).mappings().all()
+    plans = db.query(Plan).filter_by(is_active=True).order_by(Plan.id).all()
+    user = db.query(User).filter_by(id=session["user_id"]).first()
     return render_template(
         "cabinet.html",
         subscriptions=subscriptions,
         plans=plans,
         payment_methods=PAYMENT_METHODS,
-        user_email=user["email"],
+        user_email=user.email,
     )
 
 
@@ -48,19 +58,14 @@ def request_action():
         abort(400)
 
     db = get_db()
-    subscription = db.execute(
-        "SELECT * FROM subscriptions WHERE id = ?", (subscription_id,)
-    ).fetchone()
+    subscription = db.query(Subscription).filter_by(id=subscription_id).first()
 
     if subscription is None:
         abort(404)
-    if subscription["user_id"] != session["user_id"]:
+    if subscription.user_id != session["user_id"]:
         abort(403)
 
-    db.execute(
-        "INSERT INTO action_requests (subscription_id, action, details) VALUES (?, ?, ?)",
-        (subscription_id, action, details or None),
-    )
+    db.add(ActionRequest(subscription_id=subscription_id, action=action, details=details or None))
     db.commit()
 
     flash("Заявка отправлена администратору.", "success")

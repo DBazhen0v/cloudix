@@ -10,6 +10,7 @@ from flask import (
     session,
     url_for,
 )
+from sqlalchemy import select
 from werkzeug.security import check_password_hash
 
 from .constants import (
@@ -22,13 +23,14 @@ from .constants import (
     SERVER_LOCATIONS,
 )
 from .db import get_db
+from .models import ActionRequest, Plan, SupportMessage, Subscription, User
 from .security import admin_login_required, check_csrf_token, get_csrf_token
 
 bp = Blueprint("shop", __name__)
 
 
 def _plan_price_value(plan):
-    match = re.match(r"\d+", plan["price"])
+    match = re.match(r"\d+", plan.price)
     return int(match.group()) if match else 0
 
 
@@ -52,11 +54,11 @@ def inject_globals():
 @bp.route("/")
 def index():
     db = get_db()
-    plans = db.execute("SELECT * FROM plans WHERE is_active = 1 ORDER BY id").fetchall()
+    plans = db.query(Plan).filter_by(is_active=True).order_by(Plan.id).all()
 
     unordered_groups = {}
     for plan in plans:
-        unordered_groups.setdefault(plan["category"], []).append(plan)
+        unordered_groups.setdefault(plan.category, []).append(plan)
 
     plan_groups = {}
     for category in sorted(unordered_groups, key=_category_sort_key):
@@ -100,19 +102,19 @@ def order():
         payment_method = None
 
     db = get_db()
-    plan = db.execute(
-        "SELECT * FROM plans WHERE id = ? AND is_active = 1", (plan_id,)
-    ).fetchone()
+    plan = db.query(Plan).filter_by(id=plan_id, is_active=True).first()
     if plan is None:
         flash("Выбранный тариф недоступен.", "error")
         return redirect(url_for("shop.index"))
 
-    db.execute(
-        """
-        INSERT INTO subscriptions (user_id, plan_id, plan_name, contact_note, payment_method)
-        VALUES (?, ?, ?, ?, ?)
-        """,
-        (session["user_id"], plan["id"], plan["name"], contact_note or None, payment_method),
+    db.add(
+        Subscription(
+            user_id=session["user_id"],
+            plan_id=plan.id,
+            plan_name=plan.name,
+            contact_note=contact_note or None,
+            payment_method=payment_method,
+        )
     )
     db.commit()
 
@@ -144,10 +146,7 @@ def support_message():
         return redirect(next_url)
 
     db = get_db()
-    db.execute(
-        "INSERT INTO support_messages (user_id, contact, message) VALUES (?, ?, ?)",
-        (session.get("user_id"), contact or None, message),
-    )
+    db.add(SupportMessage(user_id=session.get("user_id"), contact=contact or None, message=message))
     db.commit()
 
     flash("Сообщение отправлено — мы свяжемся с вами.", "success")
@@ -180,32 +179,47 @@ def admin_logout():
 def admin_dashboard():
     db = get_db()
     subscriptions = db.execute(
-        """
-        SELECT s.*, u.email AS user_email
-        FROM subscriptions s
-        JOIN users u ON u.id = s.user_id
-        ORDER BY s.created_at DESC
-        """
-    ).fetchall()
+        select(
+            Subscription.id,
+            Subscription.plan_id,
+            Subscription.plan_name,
+            Subscription.status,
+            Subscription.payment_method,
+            Subscription.contact_note,
+            Subscription.connection_info,
+            Subscription.expires_at,
+            Subscription.created_at,
+            User.email.label("user_email"),
+        )
+        .join(User, User.id == Subscription.user_id)
+        .order_by(Subscription.created_at.desc())
+    ).mappings().all()
     action_requests = db.execute(
-        """
-        SELECT a.*, s.plan_name, u.email AS user_email
-        FROM action_requests a
-        JOIN subscriptions s ON s.id = a.subscription_id
-        JOIN users u ON u.id = s.user_id
-        WHERE a.status = 'pending'
-        ORDER BY a.created_at
-        """
-    ).fetchall()
+        select(
+            ActionRequest.id,
+            ActionRequest.action,
+            ActionRequest.details,
+            ActionRequest.created_at,
+            Subscription.plan_name,
+            User.email.label("user_email"),
+        )
+        .join(Subscription, Subscription.id == ActionRequest.subscription_id)
+        .join(User, User.id == Subscription.user_id)
+        .where(ActionRequest.status == "pending")
+        .order_by(ActionRequest.created_at)
+    ).mappings().all()
     support_messages = db.execute(
-        """
-        SELECT sm.*, u.email AS user_email
-        FROM support_messages sm
-        LEFT JOIN users u ON u.id = sm.user_id
-        WHERE sm.status = 'new'
-        ORDER BY sm.created_at
-        """
-    ).fetchall()
+        select(
+            SupportMessage.id,
+            SupportMessage.contact,
+            SupportMessage.message,
+            SupportMessage.created_at,
+            User.email.label("user_email"),
+        )
+        .outerjoin(User, User.id == SupportMessage.user_id)
+        .where(SupportMessage.status == "new")
+        .order_by(SupportMessage.created_at)
+    ).mappings().all()
     return render_template(
         "admin_dashboard.html",
         subscriptions=subscriptions,
@@ -229,13 +243,12 @@ def admin_update_subscription(subscription_id):
         return redirect(url_for("shop.admin_dashboard"))
 
     db = get_db()
-    db.execute(
-        """
-        UPDATE subscriptions
-        SET status = ?, connection_info = ?, expires_at = ?
-        WHERE id = ?
-        """,
-        (status, connection_info or None, expires_at or None, subscription_id),
+    db.query(Subscription).filter_by(id=subscription_id).update(
+        {
+            "status": status,
+            "connection_info": connection_info or None,
+            "expires_at": expires_at or None,
+        }
     )
     db.commit()
 
@@ -249,7 +262,7 @@ def admin_complete_action(action_id):
     check_csrf_token()
 
     db = get_db()
-    db.execute("UPDATE action_requests SET status = 'done' WHERE id = ?", (action_id,))
+    db.query(ActionRequest).filter_by(id=action_id).update({"status": "done"})
     db.commit()
 
     flash("Заявка отмечена выполненной.", "success")
@@ -262,7 +275,7 @@ def admin_complete_support_message(message_id):
     check_csrf_token()
 
     db = get_db()
-    db.execute("UPDATE support_messages SET status = 'done' WHERE id = ?", (message_id,))
+    db.query(SupportMessage).filter_by(id=message_id).update({"status": "done"})
     db.commit()
 
     flash("Сообщение отмечено обработанным.", "success")

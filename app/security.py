@@ -21,18 +21,19 @@ def check_csrf_token():
 def validate_user_session():
     """Clear a session pointing at a user_id that no longer exists in the DB.
 
-    On Render's free tier the SQLite file resets on redeploy, so a browser can
-    still hold a valid signed session cookie for a user row that's gone —
-    without this, any authenticated action crashes with a FOREIGN KEY error
-    instead of asking the visitor to log in again.
+    A session cookie can outlive the row it points to (e.g. the row was
+    deleted, or - on Render's free tier - the SQLite file was reset by a
+    redeploy) - without this, any authenticated action crashes with a
+    FOREIGN KEY error instead of asking the visitor to log in again.
     """
     user_id = session.get("user_id")
     if user_id is None:
         return
 
     from .db import get_db
+    from .models import User
 
-    exists = get_db().execute("SELECT 1 FROM users WHERE id = ?", (user_id,)).fetchone()
+    exists = get_db().query(User.id).filter_by(id=user_id).first()
     if exists is None:
         session.pop("user_id", None)
 

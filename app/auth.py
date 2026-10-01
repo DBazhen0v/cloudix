@@ -5,6 +5,7 @@ from flask import Blueprint, current_app, flash, redirect, render_template, requ
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from .db import get_db
+from .models import User
 from .oauth import oauth
 from .security import check_csrf_token
 
@@ -38,19 +39,15 @@ def register():
             flash("Пароли не совпадают.", "error")
         else:
             db = get_db()
-            existing = db.execute(
-                "SELECT id FROM users WHERE email = ?", (email,)
-            ).fetchone()
+            existing = db.query(User).filter_by(email=email).first()
             if existing is not None:
                 flash("Этот email уже зарегистрирован.", "error")
             else:
-                cursor = db.execute(
-                    "INSERT INTO users (email, password_hash) VALUES (?, ?)",
-                    (email, generate_password_hash(password)),
-                )
+                user = User(email=email, password_hash=generate_password_hash(password))
+                db.add(user)
                 db.commit()
                 session.clear()
-                session["user_id"] = cursor.lastrowid
+                session["user_id"] = user.id
                 return redirect(_safe_next(next_url))
 
     return render_template("register.html", next_url=next_url)
@@ -67,13 +64,13 @@ def login():
         next_url = request.form.get("next", "")
 
         db = get_db()
-        user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+        user = db.query(User).filter_by(email=email).first()
 
-        if user is None or not check_password_hash(user["password_hash"], password):
+        if user is None or not check_password_hash(user.password_hash, password):
             flash("Неверный email или пароль.", "error")
         else:
             session.clear()
-            session["user_id"] = user["id"]
+            session["user_id"] = user.id
             return redirect(_safe_next(next_url))
 
     return render_template("login.html", next_url=next_url)
@@ -114,36 +111,33 @@ def google_callback():
     google_sub = userinfo["sub"]
 
     db = get_db()
-    user = db.execute(
-        "SELECT * FROM users WHERE oauth_provider = 'google' AND oauth_id = ?",
-        (google_sub,),
-    ).fetchone()
+    user = db.query(User).filter_by(oauth_provider="google", oauth_id=google_sub).first()
 
     if user is None:
         # A password account with this Google-verified email already
         # exists - link the Google identity to it instead of rejecting or
         # creating a duplicate (email is UNIQUE), so either sign-in method
         # works from now on.
-        user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+        user = db.query(User).filter_by(email=email).first()
         if user is not None:
-            db.execute(
-                "UPDATE users SET oauth_provider = 'google', oauth_id = ? WHERE id = ?",
-                (google_sub, user["id"]),
-            )
+            user.oauth_provider = "google"
+            user.oauth_id = google_sub
             db.commit()
         else:
             # No password is ever set for a Google-only account - store an
             # unusable random hash so the column can stay NOT NULL and the
             # password-login path can never authenticate this row.
             placeholder_hash = generate_password_hash(secrets.token_urlsafe(32))
-            cursor = db.execute(
-                "INSERT INTO users (email, password_hash, oauth_provider, oauth_id) VALUES (?, ?, 'google', ?)",
-                (email, placeholder_hash, google_sub),
+            user = User(
+                email=email,
+                password_hash=placeholder_hash,
+                oauth_provider="google",
+                oauth_id=google_sub,
             )
+            db.add(user)
             db.commit()
-            user = db.execute("SELECT * FROM users WHERE id = ?", (cursor.lastrowid,)).fetchone()
 
     session.clear()
-    session["user_id"] = user["id"]
+    session["user_id"] = user.id
     next_url = session.pop("oauth_next", None) or url_for("cabinet.index")
     return redirect(next_url)

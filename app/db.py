@@ -1,78 +1,16 @@
-import sqlite3
-
 import click
-from flask import current_app, g
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
+
+from .models import Base, Plan
+
+engine = None
+Session = None
 
 
 def get_db():
-    if "db" not in g:
-        g.db = sqlite3.connect(current_app.config["DATABASE"])
-        g.db.row_factory = sqlite3.Row
-        g.db.execute("PRAGMA foreign_keys = ON")
-    return g.db
+    return Session()
 
-
-def close_db(e=None):
-    db = g.pop("db", None)
-    if db is not None:
-        db.close()
-
-
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS plans (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    category TEXT NOT NULL,
-    name TEXT NOT NULL,
-    description TEXT NOT NULL,
-    specs TEXT NOT NULL,
-    price TEXT NOT NULL,
-    is_active INTEGER NOT NULL DEFAULT 1
-);
-
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    oauth_provider TEXT,
-    oauth_id TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS subscriptions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    plan_id INTEGER,
-    plan_name TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'awaiting_payment',
-    payment_method TEXT,
-    contact_note TEXT,
-    connection_info TEXT,
-    expires_at TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-    FOREIGN KEY (plan_id) REFERENCES plans (id) ON DELETE SET NULL
-);
-
-CREATE TABLE IF NOT EXISTS action_requests (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    subscription_id INTEGER NOT NULL,
-    action TEXT NOT NULL,
-    details TEXT,
-    status TEXT NOT NULL DEFAULT 'pending',
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (subscription_id) REFERENCES subscriptions (id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS support_messages (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER,
-    contact TEXT,
-    message TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'new',
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
-);
-"""
 
 SEED_PLANS = [
     (
@@ -197,79 +135,43 @@ SEED_PLANS = [
 ]
 
 
-def _ensure_user_oauth_columns(db):
-    """Add the oauth_provider/oauth_id columns to a users table created
-    before OAuth login existed - CREATE TABLE IF NOT EXISTS is a no-op on
-    an already-existing table, so a fresh SCHEMA definition alone doesn't
-    reach a database that's already been initialized once.
-    """
-    columns = {row["name"] for row in db.execute("PRAGMA table_info(users)").fetchall()}
-    if "oauth_provider" not in columns:
-        db.execute("ALTER TABLE users ADD COLUMN oauth_provider TEXT")
-    if "oauth_id" not in columns:
-        db.execute("ALTER TABLE users ADD COLUMN oauth_id TEXT")
-    db.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_oauth ON users (oauth_provider, oauth_id)")
-    db.commit()
-
-
-def init_db():
-    db = get_db()
-    db.executescript(SCHEMA)
-    _ensure_user_oauth_columns(db)
-
-    count = db.execute("SELECT COUNT(*) AS n FROM plans").fetchone()["n"]
-    if count == 0:
-        db.executemany(
-            "INSERT INTO plans (category, name, description, specs, price) VALUES (?, ?, ?, ?, ?)",
-            SEED_PLANS,
-        )
-        db.commit()
-
-    db.execute("UPDATE plans SET is_active = 0 WHERE category = 'VPN-серверы'")
-
-    seed_categories = {p[0] for p in SEED_PLANS}
-    for category in seed_categories:
-        _sync_category_plans(db, category)
-
-    db.commit()
-
-
 def _sync_category_plans(db, category):
     current_names = [p[1] for p in SEED_PLANS if p[0] == category]
-    placeholders = ", ".join("?" for _ in current_names)
-    db.execute(
-        f"UPDATE plans SET is_active = 0 WHERE category = ? AND name NOT IN ({placeholders})",
-        [category, *current_names],
-    )
+
+    db.query(Plan).filter(
+        Plan.category == category, ~Plan.name.in_(current_names)
+    ).update({"is_active": False}, synchronize_session=False)
+
     existing_names = {
-        row["name"]
-        for row in db.execute(
-            "SELECT name FROM plans WHERE category = ?", [category]
-        ).fetchall()
+        row[0]
+        for row in db.query(Plan.name).filter(Plan.category == category).all()
     }
-    missing_plans = [
-        p for p in SEED_PLANS if p[0] == category and p[1] not in existing_names
-    ]
-    if missing_plans:
-        db.executemany(
-            "INSERT INTO plans (category, name, description, specs, price) VALUES (?, ?, ?, ?, ?)",
-            missing_plans,
-        )
+
+    missing_plans = [p for p in SEED_PLANS if p[0] == category and p[1] not in existing_names]
+    for p in missing_plans:
+        db.add(Plan(category=p[0], name=p[1], description=p[2], specs=p[3], price=p[4]))
 
     # Plans that already exist by name still need their price/specs kept in
     # sync with SEED_PLANS - otherwise editing a price here would silently
     # do nothing on an already-initialized database.
-    existing_plans = [
-        p for p in SEED_PLANS if p[0] == category and p[1] in existing_names
-    ]
-    if existing_plans:
-        db.executemany(
-            """
-            UPDATE plans SET description = ?, specs = ?, price = ?, is_active = 1
-            WHERE category = ? AND name = ?
-            """,
-            [(p[2], p[3], p[4], p[0], p[1]) for p in existing_plans],
+    existing_plans = [p for p in SEED_PLANS if p[0] == category and p[1] in existing_names]
+    for p in existing_plans:
+        db.query(Plan).filter(Plan.category == p[0], Plan.name == p[1]).update(
+            {"description": p[2], "specs": p[3], "price": p[4], "is_active": True}
         )
+
+
+def seed_plans():
+    db = get_db()
+    seed_categories = {p[0] for p in SEED_PLANS}
+    for category in seed_categories:
+        _sync_category_plans(db, category)
+    db.commit()
+
+
+def init_db():
+    Base.metadata.create_all(engine)
+    seed_plans()
 
 
 @click.command("init-db")
@@ -279,7 +181,12 @@ def init_db_command():
 
 
 def init_app(app):
-    app.teardown_appcontext(close_db)
+    global engine, Session
+
+    engine = create_engine(f"sqlite:///{app.config['DATABASE']}")
+    Session = scoped_session(sessionmaker(bind=engine))
+
+    app.teardown_appcontext(lambda exc: Session.remove())
     app.cli.add_command(init_db_command)
 
     with app.app_context():
