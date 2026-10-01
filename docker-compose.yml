@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cloudex
+      POSTGRES_PASSWORD: cloudex
+      POSTGRES_DB: cloudex
+    ports:
+      - "5432:5432"
+    volumes:
+      - cloudex_pgdata:/var/lib/postgresql/data
+
+volumes:
+  cloudex_pgdata:

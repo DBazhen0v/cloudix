@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 from flask import Flask
 
@@ -9,7 +8,6 @@ def create_app():
 
     app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
     app.config["ADMIN_PASSWORD_HASH"] = os.environ["ADMIN_PASSWORD_HASH"]
-    app.config["DATABASE"] = str(Path(app.instance_path) / "shop.sqlite3")
     app.config["CRYPTO_WALLET_ADDRESS"] = os.environ.get("CRYPTO_WALLET_ADDRESS", "")
     app.config["SUPPORT_TELEGRAM_URL"] = os.environ.get("SUPPORT_TELEGRAM_URL", "")
     app.config["SUPPORT_EMAIL"] = os.environ.get("SUPPORT_EMAIL", "")
